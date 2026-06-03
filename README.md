@@ -184,6 +184,42 @@ HTTP and WebSocket implementation itself.
 9. Add integration tests against a local server
 10. Verify a deployed HTTPS and WSS instance on a physical Android device
 
+## Work Tracking
+
+Use Linear for product planning and backlog tracking, and GitHub for code
+review and delivery.
+
+Linear should track:
+
+- Product backlog items
+- Feature work
+- Bugs
+- Accessibility and security follow-up
+- Delivery-plan phases
+- Sprint or cycle planning, if used
+
+GitHub should remain the source of truth for:
+
+- Branches
+- Pull requests
+- CI results
+- Code review
+- Dependabot and security alerts
+- Release tags
+
+Suggested Linear setup:
+
+- Team: Hobsojam (`HOB`)
+- Projects aligned to delivery-plan phases or major feature areas
+- Labels: `feature`, `bug`, `docs`, `test`, `accessibility`, `security`,
+  `protocol`, `tech-debt`
+
+Do not duplicate every pull request as a manual Linear issue. Prefer linking
+GitHub pull requests to the relevant Linear issue when implementation work is
+tracked there. Keep protocol contracts, setup instructions, architecture
+decisions, and project conventions in the repository docs rather than in
+Linear.
+
 ## Status
 
 Repository scaffold only. Android project setup is the next step.
