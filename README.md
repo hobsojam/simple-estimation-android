@@ -119,33 +119,9 @@ subsequent join screens. Do not persist PINs.
 Start with a single Android application using Kotlin and Jetpack Compose.
 Kotlin Multiplatform is not required for the initial Android-only client.
 
-Suggested layers:
-
-```text
-app/
-  UI navigation and dependency wiring
-
-data/
-  HTTP configuration client
-  WebSocket connection manager
-  Protocol DTOs and JSON parsing
-  Session-scoped preferences
-
-domain/
-  Room-state models
-  Connection and compatibility state
-  Participant actions
-
-feature/
-  Server configuration
-  Room join
-  Planning Poker
-  Bucket Estimation
-  Relative Estimation
-```
-
-Keep protocol DTOs separate from UI models. Unknown JSON fields should not break
-parsing so compatible server additions remain safe.
+The detailed architecture guide is in `docs/architecture.md`. It owns package
+boundaries, dependency direction, protocol mapping, state management,
+persistence, and networking decisions.
 
 ## Security and Privacy
 
@@ -170,19 +146,6 @@ The initial test suite should include:
 
 The server repository remains responsible for contract tests that verify the
 HTTP and WebSocket implementation itself.
-
-## Delivery Plan
-
-1. Create the Android Gradle project and CI build
-2. Add server URL configuration and protocol-version checks
-3. Add active-room discovery and refresh
-4. Implement room-list, room-link, and room-ID joining
-5. Add session-scoped display name and participant ID handling
-6. Implement WebSocket reconnect and error handling
-7. Build the Planning Poker participant screen
-8. Build Bucket and Relative Estimation participant screens
-9. Add integration tests against a local server
-10. Verify a deployed HTTPS and WSS instance on a physical Android device
 
 ## Work Tracking
 
