@@ -1,14 +1,14 @@
 # simple-estimation-android - Project Context
 
-## Purpose
+## Documentation Ownership
 
-This repository contains the native Android participation client for
-[simple-estimation](https://github.com/hobsojam/simple-estimation), a
-self-hosted real-time agile estimation tool.
-
-The Android app is for participants joining an existing room from a phone or
-tablet. Room creation, facilitation, administration, and data export remain in
-the web application.
+- `README.md` owns product scope, supported workflows, non-goals, server
+  contract summary, work tracking policy, and repository status.
+- `docs/architecture.md` owns durable Android architecture decisions.
+- Linear owns delivery-plan status, sequencing, milestones, and implementation
+  issues.
+- `AGENTS.md` owns agent working rules, validation expectations, security
+  constraints, style rules, and local Codex environment notes.
 
 ## Ways of Working
 
@@ -36,98 +36,30 @@ the web application.
 - Do not leave generated build output, secrets, local machine config, or
   signing material in git.
 
-## Product Scope
+## Product and Contract Sources
 
-Supported participant workflows:
-
-- Configure the URL of a deployed Simple Estimation server.
-- Browse and refresh the active-room list.
-- Open a room link, enter an existing room ID, or choose an active room.
-- Join with a display name and provide an access PIN when required.
-- Reconnect after transient failures while preserving the participant identity
-  for the current app session.
-- Show protocol compatibility, server, and connection errors clearly.
-- Participate in Planning Poker, Bucket Estimation, and Relative Estimation.
-
-Explicit non-goals:
-
-- Do not create or delete rooms.
-- Do not claim the facilitator role or expose facilitator controls.
-- Do not add, select, finalise, or remove backlog items.
-- Do not reveal votes, reset rounds, control timers, or export CSV files.
-- Do not persist access PINs or facilitator PINs.
-- Do not replace the web client for administration.
-
-## Server Contract
-
-The sibling `../simple-estimation` repository owns the HTTP and WebSocket
-contract. Its `docs/api.md` file is the source of truth. Check it before
-implementing protocol behavior and update the server repository first when a
-contract change is required. Do not invent Android-only protocol extensions.
-
-Before joining a room, call:
-
-```text
-GET /api/config
-```
-
-Reject unsupported protocol versions with a useful upgrade message. The
-initial Android client supports protocol version `1`.
-
-The server is the source of truth for room state. Render the latest sanitized
-`state.room` payload after connecting; do not reconstruct authoritative state
-from local commands.
-
-Open WebSocket connections using a session-scoped UUID:
-
-```text
-/ws?roomId=<room-id>&participantId=<participant-id>
-```
-
-Reuse that UUID across reconnects during the current app session so the server
-can preserve participant identity. Remember the display name only for the
-current app session. Never persist PINs.
-
-Production servers should use HTTPS and WSS. Cleartext HTTP and WebSocket
-traffic is allowed only in debug builds for local development, typically via:
-
-```text
-http://10.0.2.2:3000
-ws://10.0.2.2:3000/ws
-```
+- Read `README.md` before changing product scope or participant workflows.
+- Read `../simple-estimation/docs/api.md` before implementing or changing HTTP
+  or WebSocket behavior.
+- Do not invent Android-only protocol extensions. If the contract needs to
+  change, update the server repository first.
+- The server remains the source of truth for room state. Render sanitized server
+  state instead of reconstructing authoritative state locally.
+- The Android app is participant-only. Do not expose or send facilitator-only
+  commands.
 
 ## Android Architecture
 
 Use Kotlin and Jetpack Compose for the initial Android-only client. Kotlin
 Multiplatform is not required.
 
+Read `docs/architecture.md` before implementing app structure, state
+management, protocol mapping, networking, or persistence decisions. Keep
+`AGENTS.md` focused on working rules; put durable architecture decisions in
+`docs/architecture.md`.
+
 Keep protocol DTOs separate from UI and domain models. JSON parsing must ignore
 unknown fields so compatible server additions do not break older clients.
-
-Prefer these boundaries as the project is scaffolded:
-
-```text
-app/
-  UI navigation and dependency wiring
-
-data/
-  HTTP configuration client
-  WebSocket connection manager
-  Protocol DTOs and JSON parsing
-  Session-scoped state
-
-domain/
-  Room-state models
-  Connection and compatibility state
-  Participant actions
-
-feature/
-  Server configuration
-  Room join
-  Planning Poker
-  Bucket Estimation
-  Relative Estimation
-```
 
 ## Security and Privacy
 
@@ -136,9 +68,10 @@ feature/
 - Treat display names and backlog content as potentially sensitive data.
 - Do not add analytics, crash-reporting, or external cloud services without
   explicit user approval.
-- Use HTTPS and WSS in production.
+- Use HTTPS and secure WebSockets (`wss://`) in production.
 - Restrict cleartext traffic to debug builds.
-- Surface the demo-mode warning when `GET /api/config` reports it.
+- Surface the demo-mode warning when the server configuration endpoint reports
+  it.
 - Validate server payloads defensively. Handle malformed data without crashing
   or exposing internal details.
 - Keep secrets, signing keys, `local.properties`, and generated build output
@@ -253,8 +186,8 @@ Build coverage at the appropriate layer:
 | Compose UI | Joining, voting, timers, connection errors, and touch-friendly select-and-place movement |
 | Integration | A small set of client flows against a locally running `../simple-estimation` server |
 
-When the Gradle project exists, run the relevant checks before pushing. Prefer
-the repository's Gradle wrapper:
+After the Gradle wrapper is added, run these checks before pushing Android
+code or build-configuration changes:
 
 ```powershell
 .\gradlew.bat ktlintCheck
@@ -294,8 +227,8 @@ flows that require Android platform integration.
 - Prefer immutable state and one-way data flow.
 - Use session-scoped storage for participant identity and display name.
 - Do not commit generated build output.
-- Update `README.md` when architecture, supported workflows, setup steps, or
-  delivery status change.
+- Update `README.md` and `docs/architecture.md` when architecture, supported
+  workflows, setup steps, or durable technical decisions change.
 
 ### Code Format
 
@@ -309,8 +242,14 @@ flows that require Android platform integration.
 - Match filenames to their primary public type.
 - Use `UpperCamelCase` for types and composable functions, `lowerCamelCase` for
   functions and properties, and `UPPER_SNAKE_CASE` for constants.
-- Keep composables small. Hoist state when it is shared, persisted, or needed
-  for testing. Pass immutable UI state and event callbacks where practical.
+- Split composables when a screen has multiple independent UI states,
+  repeated layout sections, or event handling that is hard to test in one
+  function.
+- Keep mutable state in the lowest owner that needs to change it. Hoist state
+  to a parent state holder or ViewModel when sibling composables need the same
+  value, when the value must survive configuration changes, or when the state
+  transition needs unit coverage.
+- Pass immutable UI state and event callbacks where practical.
 - Prefer named arguments when a call has multiple parameters of the same type
   or when they make intent clearer.
 - Add comments only when they explain a non-obvious reason or constraint.
@@ -328,14 +267,35 @@ flows that require Android platform integration.
 ## Work Tracking
 
 Linear is the source of truth for delivery-plan status and backlog sequencing.
-Use the Linear project `Simple Estimation Android MVP` for phase tracking,
-milestones, and implementation issues. Do not duplicate the active delivery
-plan in `AGENTS.md`.
+Use the Linear project `Simple Estimation Android MVP (Minimum Viable Product)`
+for phase tracking, milestones, and implementation issues. Do not duplicate the
+active delivery plan in `AGENTS.md`.
 
 Keep repository docs focused on durable product scope, architecture,
-conventions, setup, and security rules. Update `README.md` and `AGENTS.md`
-when those durable facts change, but update Linear when work status, issue
-priority, or delivery sequencing changes.
+conventions, setup, and security rules. Update `README.md` and
+`docs/architecture.md` when those durable facts change, but update Linear when
+work status, issue priority, or delivery sequencing changes.
+
+## Versioning
+
+Use Semantic Versioning for released app versions once the Android Gradle
+project exists.
+
+- Before the first user-facing release, `0.x.y` versions may be used for
+  scaffold, prototype, and MVP work.
+- Increment `patch` for bug fixes that preserve the documented app behavior and
+  server protocol expectations.
+- Increment `minor` for new participant-facing features, new supported
+  workflows, or compatible protocol support.
+- Increment `major` for breaking changes to documented user behavior, supported
+  server compatibility, saved local configuration, or public release promises.
+- Keep Android `versionName` aligned to the semantic version.
+- Keep Android `versionCode` monotonically increasing for every installable
+  release artifact.
+- When a pull request changes behavior that should affect the released version,
+  mention the expected version bump in the PR description.
+- Do not use Linear issue status as a substitute for versioning. Linear tracks
+  work; repository release metadata tracks shipped app versions.
 
 ## Git Workflow
 
@@ -348,11 +308,7 @@ priority, or delivery sequencing changes.
   are incomplete, ask before stashing or discarding them.
 - Never commit secrets, credentials, signing material, or local machine config.
 - Do not amend published shared-branch commits without user confirmation.
-- Include this trailer in commits created by Codex:
-
-  ```text
-  Co-Authored-By: Codex <noreply@anthropic.com>
-  ```
+- Do not add a co-author trailer unless the user explicitly requests one.
 
 ## Local Windows Sandbox Notes
 
