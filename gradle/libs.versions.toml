@@ -5,6 +5,7 @@ androidx-core = "1.15.0"
 androidx-lifecycle = "2.8.7"
 compose-bom = "2024.12.01"
 detekt = "2.0.0-alpha.2"
+gradle-doctor = "0.12.0"
 kotest = "5.9.1"
 kotlin = "2.2.10"
 kover = "0.9.8"
@@ -30,3 +31,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
+gradle-doctor = { id = "com.osacky.doctor", version.ref = "gradle-doctor" }

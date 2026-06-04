@@ -238,6 +238,9 @@ Static analysis is intentionally pragmatic at the scaffold stage:
   lint, and `assembleDebug` for pull requests and pushes to `main`.
 - A dedicated workflow submits the resolved Gradle dependency graph after
   pushes to `main` so GitHub can report transitive dependency vulnerabilities.
+- Gradle Doctor observes normal Gradle runs and reports build-environment and
+  performance problems. Java-home findings warn rather than fail, and the
+  unsupported Windows multiple-daemon check is disabled.
 
 No production networking, persistence, dependency-injection, JSON, HTTP, or
 WebSocket libraries are included yet. Those choices remain tied to the first

@@ -153,6 +153,8 @@ and review the checksum changes before committing them:
 .\gradlew.bat --write-verification-metadata sha256 ktlintCheck detekt koverXmlReportDebug lint assembleDebug
 ```
 
+Gradle Doctor runs automatically with Gradle builds and reports actionable
+local build-environment and performance problems.
 The detailed architecture guide is in `docs/architecture.md`. It owns package
 boundaries, dependency direction, protocol mapping, state management,
 persistence, and networking decisions.
