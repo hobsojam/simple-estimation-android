@@ -1,0 +1,43 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+processors:
+  active: true
+
+console-reports:
+  active: true
+
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+  UnusedPrivateMember:
+    active: true
+    ignoreAnnotated:
+      - Preview
+  WildcardImport:
+    active: true
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 80
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 10
+
+naming:
+  FunctionNaming:
+    active: true
+    ignoreAnnotated:
+      - Composable
+
+potential-bugs:
+  active: true

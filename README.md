@@ -114,11 +114,31 @@ Reuse that UUID across reconnects so the server preserves participant identity.
 Remember the display name for the current app session so it can be prefilled on
 subsequent join screens. Do not persist PINs.
 
-## Suggested Android Architecture
+## Android Project Setup
 
-Start with a single Android application using Kotlin and Jetpack Compose.
-Kotlin Multiplatform is not required for the initial Android-only client.
+The repository now contains a single-module Android application scaffold in the
+`app` module. It uses Kotlin, Jetpack Compose, and the package namespace
+`com.hobsojam.simpleestimation`. Kotlin Multiplatform is not required for the
+initial Android-only client.
 
+### Prerequisites
+
+- JDK 17
+- Android SDK with API 35 installed
+- Android Studio or command-line Android SDK tools
+
+Use the checked-in Gradle wrapper for all local build commands. On Windows, run
+commands with `gradlew.bat`; on macOS or Linux, run commands with `./gradlew`.
+
+```powershell
+.\gradlew.bat ktlintCheck
+.\gradlew.bat detekt
+.\gradlew.bat test
+.\gradlew.bat lint
+.\gradlew.bat assembleDebug
+```
+
+The same checks run in GitHub Actions for pushes to `main` and pull requests.
 The detailed architecture guide is in `docs/architecture.md`. It owns package
 boundaries, dependency direction, protocol mapping, state management,
 persistence, and networking decisions.
@@ -185,4 +205,5 @@ Linear.
 
 ## Status
 
-Repository scaffold only. Android project setup is the next step.
+Initial Android Gradle scaffold is present with ktlint, Detekt, unit-test, Android lint, and debug assembly checks wired into CI.
+
