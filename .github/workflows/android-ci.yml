@@ -34,17 +34,5 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Run ktlint
-        run: ./gradlew ktlintCheck
-
-      - name: Run detekt
-        run: ./gradlew detekt
-
-      - name: Run unit tests
-        run: ./gradlew test
-
-      - name: Run Android lint
-        run: ./gradlew lint
-
-      - name: Assemble debug APK
-        run: ./gradlew assembleDebug
+      - name: Run all checks
+        run: ./gradlew ktlintCheck detekt test lint assembleDebug
