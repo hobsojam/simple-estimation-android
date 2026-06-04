@@ -144,6 +144,15 @@ Java 17 bytecode for device compatibility.
 The same checks run in GitHub Actions for pushes to `main` and pull requests.
 Kover writes the debug unit-test coverage report for SonarQube to
 `app/build/reports/kover/reportDebug.xml`.
+Gradle verifies downloaded dependency and plugin artifacts against the trusted
+SHA-256 checksums in `gradle/verification-metadata.xml`. When intentionally
+updating dependencies, regenerate the metadata with the affected build tasks
+and review the checksum changes before committing them:
+
+```powershell
+.\gradlew.bat --write-verification-metadata sha256 ktlintCheck detekt koverXmlReportDebug lint assembleDebug
+```
+
 The detailed architecture guide is in `docs/architecture.md`. It owns package
 boundaries, dependency direction, protocol mapping, state management,
 persistence, and networking decisions.
