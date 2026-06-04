@@ -243,8 +243,9 @@ Static analysis is intentionally pragmatic at the scaffold stage:
   unsupported Windows multiple-daemon check is disabled.
 - A weekly OWASP Dependency-Check workflow scans resolved application
   dependencies, fails on CVSS 7.0 or higher findings, and publishes reports for
-  review. It remains separate from pull-request CI because NVD updates are slow
-  and externally rate-limited.
+  review. It caches NVD data and uses conservative unauthenticated API pacing;
+  an optional API key speeds up updates. It remains separate from pull-request
+  CI because NVD updates are slow and externally rate-limited.
 
 No production networking, persistence, dependency-injection, JSON, HTTP, or
 WebSocket libraries are included yet. Those choices remain tied to the first

@@ -38,15 +38,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-dependency-check-
 
-      - name: Require NVD API key
-        env:
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: |
-          if [ -z "$NVD_API_KEY" ]; then
-            echo "::error::Configure the NVD_API_KEY repository secret before running this workflow."
-            exit 1
-          fi
-
       - name: Scan dependencies
         run: ./gradlew dependencyCheckAnalyze
         env:

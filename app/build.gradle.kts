@@ -79,6 +79,8 @@ dependencyCheck {
             .asFile
             .absolutePath
     analyzers.assemblyEnabled = false
+    nvd.delay = 8000
+    nvd.maxRetryCount = 10
 
     providers.environmentVariable("NVD_API_KEY").orNull
         ?.takeIf { it.isNotBlank() }

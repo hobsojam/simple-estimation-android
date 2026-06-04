@@ -157,8 +157,8 @@ Gradle Doctor runs automatically with Gradle builds and reports actionable
 local build-environment and performance problems.
 Run `.\gradlew.bat dependencyCheckAnalyze` to scan resolved dependencies for
 known vulnerabilities. The first scan can take 5–20 minutes while it downloads
-the NVD database. Local scans require the `NVD_API_KEY` environment variable,
-and the scheduled workflow requires an `NVD_API_KEY` repository secret.
+the NVD database. An optional `NVD_API_KEY` environment variable or repository
+secret speeds up updates; without one, scans use conservative NVD API pacing.
 The detailed architecture guide is in `docs/architecture.md`. It owns package
 boundaries, dependency direction, protocol mapping, state management,
 persistence, and networking decisions.
