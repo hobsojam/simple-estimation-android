@@ -227,8 +227,10 @@ Static analysis is intentionally pragmatic at the scaffold stage:
 - ktlint enforces the shared `.editorconfig` and Android Kotlin formatting.
 - Detekt builds on the default rule set with a small project config in
   `config/detekt/detekt.yml`.
-- GitHub Actions runs `ktlintCheck`, `detekt`, unit tests, Android lint, and
-  `assembleDebug` for pull requests and pushes to `main`.
+- Kover generates JaCoCo-compatible XML coverage for debug host-side unit tests
+  so SonarQube can report coverage without instrumenting Android devices.
+- GitHub Actions runs `ktlintCheck`, `detekt`, Kover-covered unit tests, Android
+  lint, and `assembleDebug` for pull requests and pushes to `main`.
 
 No production networking, persistence, dependency-injection, JSON, HTTP, or
 WebSocket libraries are included yet. Those choices remain tied to the first
