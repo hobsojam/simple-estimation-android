@@ -231,6 +231,8 @@ Static analysis is intentionally pragmatic at the scaffold stage:
   so SonarQube can report coverage without instrumenting Android devices.
 - GitHub Actions runs `ktlintCheck`, `detekt`, Kover-covered unit tests, Android
   lint, and `assembleDebug` for pull requests and pushes to `main`.
+- A dedicated workflow submits the resolved Gradle dependency graph after
+  pushes to `main` so GitHub can report transitive dependency vulnerabilities.
 
 No production networking, persistence, dependency-injection, JSON, HTTP, or
 WebSocket libraries are included yet. Those choices remain tied to the first
