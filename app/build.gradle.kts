@@ -20,6 +20,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -62,6 +65,12 @@ detekt {
 
 tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
     jvmTarget.set("17")
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
+        txt.required.set(false)
+        sarif.required.set(false)
+    }
 }
 
 dependencies {
