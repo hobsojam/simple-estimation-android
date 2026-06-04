@@ -3,6 +3,11 @@
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
+      <trusted-artifacts>
+          <trust file=".*-sources\.jar" regex="true" reason="Source JARs are for IDE navigation only and do not affect build output"/>
+          <trust file=".*-javadoc\.jar" regex="true" reason="Documentation does not affect build output"/>
+          <trust file=".*-src\.zip" regex="true" reason="Source zip are for IDE navigation only and do not affect build output"/>
+      </trusted-artifacts>
    </configuration>
    <components>
       <component group="androidx.activity" name="activity" version="1.9.3">
