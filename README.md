@@ -123,12 +123,14 @@ initial Android-only client.
 
 ### Prerequisites
 
-- JDK 17
+- JDK 17 through 25
 - Android SDK with API 35 installed
 - Android Studio or command-line Android SDK tools
 
 Use the checked-in Gradle wrapper for all local build commands. On Windows, run
 commands with `gradlew.bat`; on macOS or Linux, run commands with `./gradlew`.
+CI validates the build on JDK 25 while the Android app continues to compile to
+Java 17 bytecode for device compatibility.
 
 ```powershell
 .\gradlew.bat ktlintCheck
@@ -206,4 +208,3 @@ Linear.
 ## Status
 
 Initial Android Gradle scaffold is present with ktlint, Detekt, unit-test, Android lint, and debug assembly checks wired into CI.
-
