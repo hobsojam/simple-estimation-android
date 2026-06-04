@@ -56,7 +56,7 @@ private fun WelcomeScreen() {
             modifier = Modifier.semantics { heading() },
         )
         Text(
-            text = "Android participant client scaffold is ready.",
+            text = stringResource(id = R.string.scaffold_ready),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(top = 16.dp),
         )
