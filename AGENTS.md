@@ -178,6 +178,42 @@ addition to automated Compose tests.
 
 ## Testing
 
+### Frameworks
+
+| Purpose | Library |
+|---|---|
+| Test runner and assertions | [Kotest](https://kotest.io) (`kotest-runner-junit5`, `kotest-assertions-core`) |
+| Mocking | [MockK](https://mockk.io) (`mockk`) |
+
+Use `FunSpec` for simple unit tests and `DescribeSpec` for tests with multiple related cases or nested context. Do not use JUnit 4 — it has been removed from the project.
+
+Example unit test:
+
+```kotlin
+class SomeTest : FunSpec({
+    test("description of expected behaviour") {
+        result shouldBe expected
+    }
+})
+```
+
+Example with MockK:
+
+```kotlin
+class SomeViewModelTest : DescribeSpec({
+    val repo = mockk<SomeRepository>()
+
+    describe("when server returns an error") {
+        it("exposes an error state") {
+            every { repo.fetch() } throws IOException()
+            // ...
+        }
+    }
+})
+```
+
+### Coverage
+
 Build coverage at the appropriate layer:
 
 | Layer | What to cover |
