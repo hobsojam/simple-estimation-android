@@ -136,11 +136,14 @@ Java 17 bytecode for device compatibility.
 .\gradlew.bat ktlintCheck
 .\gradlew.bat detekt
 .\gradlew.bat test
+.\gradlew.bat koverXmlReportDebug
 .\gradlew.bat lint
 .\gradlew.bat assembleDebug
 ```
 
 The same checks run in GitHub Actions for pushes to `main` and pull requests.
+Kover writes the debug unit-test coverage report for SonarQube to
+`app/build/reports/kover/reportDebug.xml`.
 The detailed architecture guide is in `docs/architecture.md`. It owns package
 boundaries, dependency direction, protocol mapping, state management,
 persistence, and networking decisions.

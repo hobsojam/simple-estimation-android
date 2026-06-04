@@ -35,4 +35,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run all checks
-        run: ./gradlew ktlintCheck detekt test lint assembleDebug
+        run: ./gradlew ktlintCheck detekt koverXmlReportDebug lint assembleDebug

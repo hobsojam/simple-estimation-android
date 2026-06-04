@@ -7,6 +7,7 @@ compose-bom = "2024.12.01"
 detekt = "2.0.0-alpha.2"
 kotest = "5.9.1"
 kotlin = "2.2.10"
+kover = "0.9.8"
 mockk = "1.13.12"
 ktlint-gradle = "14.0.1"
 
@@ -26,5 +27,6 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }

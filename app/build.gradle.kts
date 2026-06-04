@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
 }
@@ -51,6 +52,16 @@ ktlint {
     outputToConsole.set(true)
     filter {
         exclude("**/generated/**")
+    }
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                classes("*.BuildConfig", "*.ComposableSingletons\$*", "*.R", "*.R\$*")
+            }
+        }
     }
 }
 
