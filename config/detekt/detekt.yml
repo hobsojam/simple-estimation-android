@@ -10,7 +10,9 @@ console-reports:
 
 style:
   MagicNumber:
-    active: false
+    active: true
+    ignoreAnnotated:
+      - Composable
   MaxLineLength:
     active: true
     maxLineLength: 120
