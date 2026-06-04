@@ -1,11 +1,10 @@
 package com.hobsojam.simpleestimation
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
-class ScaffoldTest {
-    @Test
-    fun packageNamespaceMatchesApplicationId() {
-        assertEquals("com.hobsojam.simpleestimation", BuildConfig.APPLICATION_ID)
+class ScaffoldTest : FunSpec({
+    test("package namespace matches application ID") {
+        BuildConfig.APPLICATION_ID shouldBe "com.hobsojam.simpleestimation"
     }
-}
+})
