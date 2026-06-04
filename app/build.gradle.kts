@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    // kotlin.android is applied transitively by kotlin.plugin.compose / AGP in Kotlin 2.x — do not add it explicitly
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
