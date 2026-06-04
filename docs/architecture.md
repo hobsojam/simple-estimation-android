@@ -241,6 +241,10 @@ Static analysis is intentionally pragmatic at the scaffold stage:
 - Gradle Doctor observes normal Gradle runs and reports build-environment and
   performance problems. Java-home findings warn rather than fail, and the
   unsupported Windows multiple-daemon check is disabled.
+- A weekly OWASP Dependency-Check workflow scans resolved application
+  dependencies, fails on CVSS 7.0 or higher findings, and publishes reports for
+  review. It remains separate from pull-request CI because NVD updates are slow
+  and externally rate-limited.
 
 No production networking, persistence, dependency-injection, JSON, HTTP, or
 WebSocket libraries are included yet. Those choices remain tied to the first

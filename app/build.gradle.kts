@@ -3,6 +3,7 @@ plugins {
     // kotlin.android is applied transitively by kotlin.plugin.compose / AGP in Kotlin 2.x — do not add it explicitly
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kover)
+    alias(libs.plugins.owasp.dependency.check)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
 }
@@ -64,6 +65,24 @@ kover {
             }
         }
     }
+}
+
+dependencyCheck {
+    formats = listOf("HTML", "JSON")
+    failBuildOnCVSS = 7.0f
+    failOnError = true
+    scanConfigurations = listOf("debugRuntimeClasspath", "releaseRuntimeClasspath")
+    data.directory =
+        rootProject.layout.buildDirectory
+            .dir("dependency-check-data")
+            .get()
+            .asFile
+            .absolutePath
+    analyzers.assemblyEnabled = false
+
+    providers.environmentVariable("NVD_API_KEY").orNull
+        ?.takeIf { it.isNotBlank() }
+        ?.let { nvd.apiKey = it }
 }
 
 detekt {
