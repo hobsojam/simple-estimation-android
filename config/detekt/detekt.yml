@@ -1,6 +1,3 @@
-build:
-  maxIssues: 0
-
 config:
   validation: true
   warningsAsErrors: false
@@ -17,21 +14,17 @@ style:
   MaxLineLength:
     active: true
     maxLineLength: 120
-  UnusedPrivateMember:
-    active: true
-    ignoreAnnotated:
-      - Preview
   WildcardImport:
     active: true
 
 complexity:
   LongMethod:
     active: true
-    threshold: 80
+    allowedLines: 80
   LongParameterList:
     active: true
-    functionThreshold: 8
-    constructorThreshold: 10
+    allowedFunctionParameters: 8
+    allowedConstructorParameters: 10
 
 naming:
   FunctionNaming:

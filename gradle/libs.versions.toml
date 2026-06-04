@@ -1,13 +1,13 @@
 [versions]
-agp = "8.13.2"
+agp = "9.0.1"
 androidx-activity = "1.9.3"
 androidx-core = "1.15.0"
 androidx-lifecycle = "2.8.7"
 compose-bom = "2024.12.01"
-detekt = "1.23.7"
+detekt = "2.0.0-alpha.2"
 junit = "4.13.2"
-kotlin = "2.0.21"
-ktlint-gradle = "12.1.2"
+kotlin = "2.2.10"
+ktlint-gradle = "14.0.1"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
@@ -22,7 +22,6 @@ junit = { module = "junit:junit", version.ref = "junit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }

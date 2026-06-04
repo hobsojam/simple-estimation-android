@@ -12,7 +12,7 @@ README owns product scope. Linear owns delivery status and sequencing.
 | UI | Jetpack Compose |
 | Initial module shape | Single `app` Gradle module |
 | Package namespace | `com.hobsojam.simpleestimation` |
-| Build system | Gradle wrapper with Android Gradle Plugin, Kotlin, Compose compiler plugin, ktlint, and Detekt |
+| Build system | Gradle wrapper with Android Gradle Plugin built-in Kotlin, Compose compiler plugin, ktlint, and Detekt |
 | Presentation pattern | ViewModel/state-holder per feature with immutable UI state |
 | State flow | Unidirectional events to state |
 | Protocol model | Server DTOs mapped into domain models |
@@ -216,8 +216,11 @@ Resolve these after the Gradle scaffold work:
 ## Build and Quality Gates
 
 The scaffold uses the checked-in Gradle wrapper so contributors and CI run the
-same Gradle distribution. The root version catalog owns Android Gradle Plugin,
-Kotlin, Compose, ktlint, Detekt, and AndroidX versions.
+same Gradle distribution. Android Gradle Plugin provides built-in Kotlin, and
+the root version catalog owns Android Gradle Plugin, Compose compiler, Compose,
+ktlint, Detekt, and AndroidX versions. The build runs on JDK 25 while Android
+source and target compatibility remain Java 17. Gradle also supports build-host
+JDK versions from 17 through 25.
 
 Static analysis is intentionally pragmatic at the scaffold stage:
 
