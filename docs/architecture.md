@@ -222,6 +222,11 @@ ktlint, Detekt, and AndroidX versions. The build runs on JDK 25 while Android
 source and target compatibility remain Java 17. Gradle also supports build-host
 JDK versions from 17 through 25.
 
+Gradle dependency verification enforces the reviewed SHA-256 checksums in
+`gradle/verification-metadata.xml` for downloaded plugins, dependencies, and
+their metadata. Intentional dependency updates must refresh and review that
+file in the same change.
+
 Static analysis is intentionally pragmatic at the scaffold stage:
 
 - ktlint enforces the shared `.editorconfig` and Android Kotlin formatting.
