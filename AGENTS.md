@@ -267,7 +267,7 @@ flows that require Android platform integration.
 ## Work Tracking
 
 Linear is the source of truth for delivery-plan status and backlog sequencing.
-Use the Linear project `Simple Estimation Android MVP (Minimum Viable Product)`
+Use the Linear project `Simple Estimation Android MVP`
 for phase tracking, milestones, and implementation issues. Do not duplicate the
 active delivery plan in `AGENTS.md`.
 
