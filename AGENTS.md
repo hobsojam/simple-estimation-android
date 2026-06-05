@@ -336,6 +336,14 @@ project exists.
 ## Git Workflow
 
 - Develop each feature on its own branch from an up-to-date `main`.
+- Before starting new feature work, fetch `origin`, update local `main` to
+  match `origin/main`, and create the feature branch from that updated `main`.
+  Do not start feature work from a previously merged branch, stale local
+  `main`, or another feature branch unless the user explicitly requests stacked
+  work.
+- After creating a feature branch, set its upstream to the matching remote
+  feature branch once pushed. The feature branch should track
+  `origin/<branch-name>`, not `origin/main`.
 - Use branch names such as `feat/<short-description>`.
 - Open a PR targeting `main` for feature work.
 - Never commit feature work directly to `main`.
