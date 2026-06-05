@@ -191,7 +191,7 @@ private fun RoomDiscoveryContentPreview() {
     MaterialTheme {
         RoomDiscoveryContent(
             uiState = RoomDiscoveryUiState(
-                serverUrl = "http://10.0.2.2:3000",
+                serverUrl = "https://example.com",
                 status = RoomDiscoveryStatus.Loaded(
                     rooms = listOf(
                         ActiveRoom(
