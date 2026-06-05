@@ -102,7 +102,7 @@ private fun RoomDiscoveryContent(
         ) {
             Text(loadButtonText(uiState.status))
         }
-        JoinRoomPanel(
+        RoomJoinPanel(
             joinState = uiState.join,
             onManualRoomInputChanged = onManualRoomInputChanged,
             onDisplayNameChanged = onDisplayNameChanged,
