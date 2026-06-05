@@ -3,6 +3,7 @@ package com.hobsojam.simpleestimation.feature.roomdiscovery
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.hobsojam.simpleestimation.domain.room.ActiveRoom
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomRepository
 import kotlinx.coroutines.launch
 
@@ -22,6 +23,34 @@ class RoomDiscoveryViewModel(
         viewModelScope.launch {
             stateHolder.loadActiveRooms()
         }
+    }
+
+    fun updateManualRoomInput(value: String) {
+        stateHolder.updateManualRoomInput(value)
+    }
+
+    fun openRoomLink(value: String) {
+        stateHolder.openRoomLink(value)
+    }
+
+    fun selectRoom(room: ActiveRoom) {
+        stateHolder.selectRoom(room)
+    }
+
+    fun updateDisplayName(value: String) {
+        stateHolder.updateDisplayName(value)
+    }
+
+    fun updateAccessPin(value: String) {
+        stateHolder.updateAccessPin(value)
+    }
+
+    fun cancelJoin() {
+        stateHolder.cancelJoin()
+    }
+
+    fun submitJoin() {
+        stateHolder.submitJoin()
     }
 
     class Factory(
