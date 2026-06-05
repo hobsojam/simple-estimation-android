@@ -91,17 +91,17 @@ private class JsonParser(private val source: String) {
             '"' -> JsonValue.StringValue(parseString())
             't' -> {
                 if (!source.startsWith("true", index)) throw ProtocolParseException()
-                index += 4
+                index += "true".length
                 JsonValue.BooleanValue(true)
             }
             'f' -> {
                 if (!source.startsWith("false", index)) throw ProtocolParseException()
-                index += 5
+                index += "false".length
                 JsonValue.BooleanValue(false)
             }
             'n' -> {
                 if (!source.startsWith("null", index)) throw ProtocolParseException()
-                index += 4
+                index += "null".length
                 JsonValue.NullValue
             }
             '-', in '0'..'9' -> JsonValue.NumberValue(parseNumber())
@@ -167,7 +167,7 @@ private class JsonParser(private val source: String) {
             'u' -> {
                 if (index + UNICODE_ESCAPE_LENGTH > source.length) throw ProtocolParseException()
                 val hex = source.substring(index, index + UNICODE_ESCAPE_LENGTH)
-                val codePoint = hex.toIntOrNull(16) ?: throw ProtocolParseException()
+                val codePoint = hex.toIntOrNull(HEX_RADIX) ?: throw ProtocolParseException()
                 index += UNICODE_ESCAPE_LENGTH
                 codePoint.toChar()
             }
@@ -217,6 +217,7 @@ private class JsonParser(private val source: String) {
 
     private companion object {
         const val UNICODE_ESCAPE_LENGTH = 4
+        const val HEX_RADIX = 16
         const val JSON_WHITESPACE = " \n\r\t"
     }
 }
