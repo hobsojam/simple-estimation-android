@@ -87,10 +87,7 @@ fun ServerConfigurationScreen(
 }
 
 @Composable
-private fun ServerConfigurationStatusMessage(
-    status: ServerConfigurationStatus,
-    modifier: Modifier = Modifier,
-) {
+private fun ServerConfigurationStatusMessage(status: ServerConfigurationStatus, modifier: Modifier = Modifier) {
     when (status) {
         ServerConfigurationStatus.Idle -> Unit
         ServerConfigurationStatus.Checking -> Text(
@@ -132,8 +129,7 @@ private fun ServerConfigurationStatusMessage(
     }
 }
 
-private fun buttonText(status: ServerConfigurationStatus): String =
-    when (status) {
-        ServerConfigurationStatus.Checking -> "Checking…"
-        else -> "Check server and continue"
-    }
+private fun buttonText(status: ServerConfigurationStatus): String = when (status) {
+    ServerConfigurationStatus.Checking -> "Checking…"
+    else -> "Check server and continue"
+}

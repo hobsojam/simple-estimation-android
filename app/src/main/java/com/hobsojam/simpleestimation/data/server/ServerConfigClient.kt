@@ -52,7 +52,4 @@ class JavaNetServerConfigClient : ServerConfigClient {
     }
 }
 
-class ServerConfigNetworkException(
-    message: String,
-    cause: Throwable? = null,
-) : IOException(message, cause)
+class ServerConfigNetworkException(message: String, cause: Throwable? = null) : IOException(message, cause)

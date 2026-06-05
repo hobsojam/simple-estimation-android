@@ -2,9 +2,7 @@ package com.hobsojam.simpleestimation.domain.server
 
 import java.net.URI
 
-data class ServerBaseUrl private constructor(
-    val value: String,
-) {
+data class ServerBaseUrl private constructor(val value: String) {
     fun configEndpoint(): String = "$value/api/config"
 
     fun webSocketEndpoint(): String {
@@ -32,10 +30,7 @@ data class ServerBaseUrl private constructor(
         private const val WS_SCHEME = "ws"
         private const val WS_PATH = "/ws"
 
-        fun parse(
-            rawValue: String,
-            cleartextAllowed: Boolean,
-        ): Result<ServerBaseUrl> {
+        fun parse(rawValue: String, cleartextAllowed: Boolean): Result<ServerBaseUrl> {
             val trimmed = rawValue.trim().trimEnd('/')
             return parseUri(trimmed).fold(
                 onFailure = { Result.failure(it) },
@@ -61,7 +56,9 @@ data class ServerBaseUrl private constructor(
         private fun checkScheme(scheme: String?): ServerBaseUrlException? =
             if (scheme != HTTPS_SCHEME && scheme != HTTP_SCHEME) {
                 ServerBaseUrlException("Server URL must start with https://.")
-            } else null
+            } else {
+                null
+            }
 
         private fun checkHost(uri: URI): ServerBaseUrlException? =
             if (uri.host.isNullOrBlank()) ServerBaseUrlException("Server URL must include a host name.") else null
@@ -69,12 +66,16 @@ data class ServerBaseUrl private constructor(
         private fun checkQueryOrFragment(uri: URI): ServerBaseUrlException? =
             if (uri.rawQuery != null || uri.rawFragment != null) {
                 ServerBaseUrlException("Server URL cannot include query text or a fragment.")
-            } else null
+            } else {
+                null
+            }
 
         private fun checkCleartextAllowed(scheme: String?, cleartextAllowed: Boolean): ServerBaseUrlException? =
             if (scheme == HTTP_SCHEME && !cleartextAllowed) {
                 ServerBaseUrlException("Release builds require an HTTPS Simple Estimation server.")
-            } else null
+            } else {
+                null
+            }
 
         private fun buildNormalized(scheme: String, uri: URI): ServerBaseUrl = ServerBaseUrl(
             URI(
