@@ -78,7 +78,6 @@ class RoomDiscoveryStateHolderTest : FunSpec({
 
         val status = stateHolder.uiState.status as RoomDiscoveryStatus.Error
         status.message shouldBe "Could not reach the server. Check the URL and connection."
-        status.staleRooms.shouldHaveSize(1)
         status.staleRooms shouldBe listOf(room)
     }
 })
