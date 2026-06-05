@@ -37,32 +37,47 @@ data class ServerBaseUrl private constructor(
             cleartextAllowed: Boolean,
         ): Result<ServerBaseUrl> {
             val trimmed = rawValue.trim().trimEnd('/')
-            if (trimmed.isEmpty()) {
-                return Result.failure(ServerBaseUrlException("Enter a server URL before continuing."))
-            }
+            return parseUri(trimmed).fold(
+                onFailure = { Result.failure(it) },
+                onSuccess = { uri -> buildFromUri(uri, cleartextAllowed) },
+            )
+        }
 
-            val uri = runCatching { URI(trimmed) }
-                .getOrElse {
-                    return Result.failure(ServerBaseUrlException("Enter a valid server URL."))
-                }
+        private fun parseUri(trimmed: String): Result<URI> = when {
+            trimmed.isEmpty() -> Result.failure(ServerBaseUrlException("Enter a server URL before continuing."))
+            else -> runCatching { URI(trimmed) }
+                .recoverCatching { throw ServerBaseUrlException("Enter a valid server URL.") }
+        }
 
+        private fun buildFromUri(uri: URI, cleartextAllowed: Boolean): Result<ServerBaseUrl> {
             val scheme = uri.scheme?.lowercase()
-            if (scheme != HTTPS_SCHEME && scheme != HTTP_SCHEME) {
-                return Result.failure(ServerBaseUrlException("Server URL must start with https://."))
-            }
-            if (uri.host.isNullOrBlank()) {
-                return Result.failure(ServerBaseUrlException("Server URL must include a host name."))
-            }
-            if (uri.rawQuery != null || uri.rawFragment != null) {
-                return Result.failure(ServerBaseUrlException("Server URL cannot include query text or a fragment."))
-            }
-            if (scheme == HTTP_SCHEME && !cleartextAllowed) {
-                return Result.failure(
-                    ServerBaseUrlException("Release builds require an HTTPS Simple Estimation server."),
-                )
-            }
+            val error = checkScheme(scheme)
+                ?: checkHost(uri)
+                ?: checkQueryOrFragment(uri)
+                ?: checkCleartextAllowed(scheme, cleartextAllowed)
+            return if (error != null) Result.failure(error) else Result.success(buildNormalized(scheme!!, uri))
+        }
 
-            val normalized = URI(
+        private fun checkScheme(scheme: String?): ServerBaseUrlException? =
+            if (scheme != HTTPS_SCHEME && scheme != HTTP_SCHEME) {
+                ServerBaseUrlException("Server URL must start with https://.")
+            } else null
+
+        private fun checkHost(uri: URI): ServerBaseUrlException? =
+            if (uri.host.isNullOrBlank()) ServerBaseUrlException("Server URL must include a host name.") else null
+
+        private fun checkQueryOrFragment(uri: URI): ServerBaseUrlException? =
+            if (uri.rawQuery != null || uri.rawFragment != null) {
+                ServerBaseUrlException("Server URL cannot include query text or a fragment.")
+            } else null
+
+        private fun checkCleartextAllowed(scheme: String?, cleartextAllowed: Boolean): ServerBaseUrlException? =
+            if (scheme == HTTP_SCHEME && !cleartextAllowed) {
+                ServerBaseUrlException("Release builds require an HTTPS Simple Estimation server.")
+            } else null
+
+        private fun buildNormalized(scheme: String, uri: URI): ServerBaseUrl = ServerBaseUrl(
+            URI(
                 scheme,
                 uri.userInfo,
                 uri.host,
@@ -70,10 +85,8 @@ data class ServerBaseUrl private constructor(
                 uri.path.takeUnless { it.isNullOrBlank() || it == "/" },
                 null,
                 null,
-            ).toString().trimEnd('/')
-
-            return Result.success(ServerBaseUrl(normalized))
-        }
+            ).toString().trimEnd('/'),
+        )
     }
 }
 

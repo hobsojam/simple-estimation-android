@@ -7,6 +7,7 @@ import com.hobsojam.simpleestimation.data.server.ServerConfigClient
 import com.hobsojam.simpleestimation.domain.server.ProtocolCompatibility
 import com.hobsojam.simpleestimation.domain.server.ProtocolCompatibilityChecker
 import com.hobsojam.simpleestimation.domain.server.ServerBaseUrl
+import com.hobsojam.simpleestimation.domain.server.ServerConfig
 
 class ServerConfigurationController(
     private val configClient: ServerConfigClient,
@@ -28,52 +29,50 @@ class ServerConfigurationController(
     }
 
     suspend fun checkCompatibilityBeforeJoin() {
-        val roomId = uiState.roomId.trim()
-        val displayName = uiState.displayName.trim()
-        val baseUrl = ServerBaseUrl.parse(
-            rawValue = uiState.serverUrl,
-            cleartextAllowed = cleartextAllowed,
-        ).getOrElse { exception ->
-            showError(exception.userSafeMessage())
-            return
-        }
-
-        if (roomId.isEmpty()) {
-            showError("Enter a room ID before continuing.")
-            return
-        }
-        if (displayName.isEmpty()) {
-            showError("Enter a display name before continuing.")
-            return
-        }
-
+        val baseUrl = resolveBaseUrl() ?: return
+        if (!validateFields()) return
         uiState = uiState.copy(
             normalizedServerUrl = baseUrl.value,
             normalizedWebSocketUrl = baseUrl.webSocketEndpoint(),
             status = ServerConfigurationStatus.Checking,
         )
+        configClient.fetchConfig(baseUrl).fold(
+            onSuccess = { config -> uiState = buildCompatibilityUiState(config) },
+            onFailure = { exception -> showError(exception.userSafeMessage()) },
+        )
+    }
 
-        val config = configClient.fetchConfig(baseUrl).getOrElse { exception ->
-            showError(exception.userSafeMessage())
-            return
+    private fun resolveBaseUrl(): ServerBaseUrl? {
+        val parsed = ServerBaseUrl.parse(uiState.serverUrl, cleartextAllowed)
+        parsed.onFailure { showError(it.userSafeMessage()) }
+        return parsed.getOrNull()
+    }
+
+    private fun validateFields(): Boolean {
+        val roomId = uiState.roomId.trim()
+        val displayName = uiState.displayName.trim()
+        return when {
+            roomId.isEmpty() -> { showError("Enter a room ID before continuing."); false }
+            displayName.isEmpty() -> { showError("Enter a display name before continuing."); false }
+            else -> true
         }
+    }
 
-        uiState = when (val compatibility = ProtocolCompatibilityChecker.check(config)) {
+    private fun buildCompatibilityUiState(config: ServerConfig): ServerConfigurationUiState =
+        when (val compatibility = ProtocolCompatibilityChecker.check(config)) {
             is ProtocolCompatibility.Compatible -> uiState.copy(
                 status = ServerConfigurationStatus.ReadyToJoin(
                     demoMode = compatibility.config.demoMode,
                     message = "Protocol version ${compatibility.config.protocolVersion} is supported. " +
-                        "Ready to join room $roomId.",
+                        "Ready to join room ${uiState.roomId.trim()}.",
                 ),
             )
-
             is ProtocolCompatibility.Unsupported -> uiState.copy(
                 status = ServerConfigurationStatus.BlockedByUpgrade(
                     message = compatibility.message,
                 ),
             )
         }
-    }
 
     private fun showError(message: String) {
         uiState = uiState.copy(status = ServerConfigurationStatus.Error(message))
