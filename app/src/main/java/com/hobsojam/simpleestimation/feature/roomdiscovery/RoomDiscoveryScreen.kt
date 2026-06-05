@@ -37,12 +37,24 @@ fun RoomDiscoveryScreen(
     uiState: RoomDiscoveryUiState,
     onServerUrlChanged: (String) -> Unit,
     onLoadRooms: () -> Unit,
+    onManualRoomInputChanged: (String) -> Unit,
+    onRoomSelected: (ActiveRoom) -> Unit,
+    onDisplayNameChanged: (String) -> Unit,
+    onAccessPinChanged: (String) -> Unit,
+    onCancelJoin: () -> Unit,
+    onSubmitJoin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     RoomDiscoveryContent(
         uiState = uiState,
         onServerUrlChanged = onServerUrlChanged,
         onLoadRooms = onLoadRooms,
+        onManualRoomInputChanged = onManualRoomInputChanged,
+        onRoomSelected = onRoomSelected,
+        onDisplayNameChanged = onDisplayNameChanged,
+        onAccessPinChanged = onAccessPinChanged,
+        onCancelJoin = onCancelJoin,
+        onSubmitJoin = onSubmitJoin,
         modifier = modifier,
     )
 }
@@ -52,6 +64,12 @@ private fun RoomDiscoveryContent(
     uiState: RoomDiscoveryUiState,
     onServerUrlChanged: (String) -> Unit,
     onLoadRooms: () -> Unit,
+    onManualRoomInputChanged: (String) -> Unit,
+    onRoomSelected: (ActiveRoom) -> Unit,
+    onDisplayNameChanged: (String) -> Unit,
+    onAccessPinChanged: (String) -> Unit,
+    onCancelJoin: () -> Unit,
+    onSubmitJoin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -84,7 +102,18 @@ private fun RoomDiscoveryContent(
         ) {
             Text(loadButtonText(uiState.status))
         }
-        RoomDiscoveryStatusContent(status = uiState.status)
+        JoinRoomPanel(
+            joinState = uiState.join,
+            onManualRoomInputChanged = onManualRoomInputChanged,
+            onDisplayNameChanged = onDisplayNameChanged,
+            onAccessPinChanged = onAccessPinChanged,
+            onCancelJoin = onCancelJoin,
+            onSubmitJoin = onSubmitJoin,
+        )
+        RoomDiscoveryStatusContent(
+            status = uiState.status,
+            onRoomSelected = onRoomSelected,
+        )
     }
 }
 
@@ -100,21 +129,34 @@ private fun loadButtonText(status: RoomDiscoveryStatus): String =
     }
 
 @Composable
-private fun RoomDiscoveryStatusContent(status: RoomDiscoveryStatus) {
+private fun RoomDiscoveryStatusContent(
+    status: RoomDiscoveryStatus,
+    onRoomSelected: (ActiveRoom) -> Unit,
+) {
     when (status) {
         RoomDiscoveryStatus.Idle -> Text("Enter a server URL, then load active rooms.")
         is RoomDiscoveryStatus.Empty -> Text("No active rooms are available on this server.")
-        is RoomDiscoveryStatus.Loading -> LoadingRooms(previousRooms = status.previousRooms)
+        is RoomDiscoveryStatus.Loading -> LoadingRooms(
+            previousRooms = status.previousRooms,
+            onRoomSelected = onRoomSelected,
+        )
         is RoomDiscoveryStatus.Loaded -> RoomList(
             rooms = status.rooms,
             staleMessage = if (status.isStale) "Showing a stale room list." else null,
+            onRoomSelected = onRoomSelected,
         )
-        is RoomDiscoveryStatus.Error -> ErrorRooms(status = status)
+        is RoomDiscoveryStatus.Error -> ErrorRooms(
+            status = status,
+            onRoomSelected = onRoomSelected,
+        )
     }
 }
 
 @Composable
-private fun LoadingRooms(previousRooms: List<ActiveRoom>?) {
+private fun LoadingRooms(
+    previousRooms: List<ActiveRoom>?,
+    onRoomSelected: (ActiveRoom) -> Unit,
+) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -124,12 +166,19 @@ private fun LoadingRooms(previousRooms: List<ActiveRoom>?) {
     }
     previousRooms?.takeIf { it.isNotEmpty() }?.let { rooms ->
         Text("Refreshing. Showing the previous room list until the server responds.")
-        RoomList(rooms = rooms, staleMessage = "Previous results may be stale.")
+        RoomList(
+            rooms = rooms,
+            staleMessage = "Previous results may be stale.",
+            onRoomSelected = onRoomSelected,
+        )
     }
 }
 
 @Composable
-private fun ErrorRooms(status: RoomDiscoveryStatus.Error) {
+private fun ErrorRooms(
+    status: RoomDiscoveryStatus.Error,
+    onRoomSelected: (ActiveRoom) -> Unit,
+) {
     Text(
         text = status.message,
         color = MaterialTheme.colorScheme.error,
@@ -139,6 +188,7 @@ private fun ErrorRooms(status: RoomDiscoveryStatus.Error) {
         RoomList(
             rooms = rooms,
             staleMessage = "Showing stale room results from the last successful load.",
+            onRoomSelected = onRoomSelected,
         )
     }
 }
@@ -147,6 +197,7 @@ private fun ErrorRooms(status: RoomDiscoveryStatus.Error) {
 private fun RoomList(
     rooms: List<ActiveRoom>,
     staleMessage: String?,
+    onRoomSelected: (ActiveRoom) -> Unit,
 ) {
     staleMessage?.let {
         Text(
@@ -156,13 +207,19 @@ private fun RoomList(
     }
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         items(items = rooms, key = { it.id }) { room ->
-            RoomCard(room = room)
+            RoomCard(
+                room = room,
+                onRoomSelected = onRoomSelected,
+            )
         }
     }
 }
 
 @Composable
-private fun RoomCard(room: ActiveRoom) {
+private fun RoomCard(
+    room: ActiveRoom,
+    onRoomSelected: (ActiveRoom) -> Unit,
+) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth(),
@@ -180,6 +237,14 @@ private fun RoomCard(room: ActiveRoom) {
             }
             if (room.pinProtected) {
                 Text("Facilitator PIN protected")
+            }
+            Button(
+                onClick = { onRoomSelected(room) },
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .semantics { role = Role.Button },
+            ) {
+                Text("Select room")
             }
         }
     }
@@ -200,7 +265,7 @@ private fun RoomDiscoveryContentPreview() {
                             name = "Sprint planning",
                             participantCount = 3,
                             pinProtected = true,
-                            accessPinProtected = false,
+                            accessPinProtected = true,
                         ),
                     ),
                     loadedAt = Instant.EPOCH,
@@ -209,6 +274,12 @@ private fun RoomDiscoveryContentPreview() {
             ),
             onServerUrlChanged = {},
             onLoadRooms = {},
+            onManualRoomInputChanged = {},
+            onRoomSelected = {},
+            onDisplayNameChanged = {},
+            onAccessPinChanged = {},
+            onCancelJoin = {},
+            onSubmitJoin = {},
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.hobsojam.simpleestimation
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.hobsojam.simpleestimation.data.room.HttpActiveRoomRepository
+import com.hobsojam.simpleestimation.domain.room.ActiveRoom
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryScreen
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryStatus
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryUiState
@@ -26,12 +28,34 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        openRoomLinkFromIntent(intent)
+
         setContent {
             SimpleEstimationApp(
                 uiState = roomDiscoveryViewModel.uiState,
                 onServerUrlChanged = roomDiscoveryViewModel::updateServerUrl,
                 onLoadRooms = roomDiscoveryViewModel::loadActiveRooms,
+                onManualRoomInputChanged = roomDiscoveryViewModel::updateManualRoomInput,
+                onRoomSelected = roomDiscoveryViewModel::selectRoom,
+                onDisplayNameChanged = roomDiscoveryViewModel::updateDisplayName,
+                onAccessPinChanged = roomDiscoveryViewModel::updateAccessPin,
+                onCancelJoin = roomDiscoveryViewModel::cancelJoin,
+                onSubmitJoin = roomDiscoveryViewModel::submitJoin,
             )
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        openRoomLinkFromIntent(intent)
+    }
+
+    private fun openRoomLinkFromIntent(intent: Intent) {
+        when (intent.action) {
+            Intent.ACTION_VIEW -> intent.dataString?.let(roomDiscoveryViewModel::openRoomLink)
+            Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)
+                ?.let(roomDiscoveryViewModel::openRoomLink)
         }
     }
 }
@@ -41,6 +65,12 @@ fun SimpleEstimationApp(
     uiState: RoomDiscoveryUiState,
     onServerUrlChanged: (String) -> Unit,
     onLoadRooms: () -> Unit,
+    onManualRoomInputChanged: (String) -> Unit,
+    onRoomSelected: (ActiveRoom) -> Unit,
+    onDisplayNameChanged: (String) -> Unit,
+    onAccessPinChanged: (String) -> Unit,
+    onCancelJoin: () -> Unit,
+    onSubmitJoin: () -> Unit,
 ) {
     MaterialTheme {
         Surface(
@@ -51,6 +81,12 @@ fun SimpleEstimationApp(
                 uiState = uiState,
                 onServerUrlChanged = onServerUrlChanged,
                 onLoadRooms = onLoadRooms,
+                onManualRoomInputChanged = onManualRoomInputChanged,
+                onRoomSelected = onRoomSelected,
+                onDisplayNameChanged = onDisplayNameChanged,
+                onAccessPinChanged = onAccessPinChanged,
+                onCancelJoin = onCancelJoin,
+                onSubmitJoin = onSubmitJoin,
                 modifier = Modifier,
             )
         }
@@ -67,5 +103,11 @@ private fun SimpleEstimationAppPreview() {
         ),
         onServerUrlChanged = {},
         onLoadRooms = {},
+        onManualRoomInputChanged = {},
+        onRoomSelected = {},
+        onDisplayNameChanged = {},
+        onAccessPinChanged = {},
+        onCancelJoin = {},
+        onSubmitJoin = {},
     )
 }

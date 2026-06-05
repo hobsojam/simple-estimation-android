@@ -7,6 +7,9 @@ import com.hobsojam.simpleestimation.domain.room.ActiveRoom
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomDiscoveryFailure
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomDiscoveryResult
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomRepository
+import java.net.URI
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import java.time.Clock
 import java.time.Instant
 
@@ -19,12 +22,126 @@ class RoomDiscoveryStateHolder(
         RoomDiscoveryUiState(
             serverUrl = initialServerUrl,
             status = RoomDiscoveryStatus.Idle,
+            join = RoomJoinUiState(),
         ),
     )
         private set
 
     fun updateServerUrl(serverUrl: String) {
         uiState = uiState.copy(serverUrl = serverUrl)
+    }
+
+    fun updateManualRoomInput(value: String) {
+        val input = parseRoomInput(value) ?: RoomInput(roomId = value, serverBaseUrl = null)
+        uiState = uiState.copy(
+            serverUrl = input.serverBaseUrl ?: uiState.serverUrl,
+            join = uiState.join.copy(
+                mode = RoomJoinMode.JoiningRoom(
+                    roomIdInput = input.roomId,
+                    roomName = null,
+                    accessPinRequired = false,
+                ),
+                status = RoomJoinStatus.Idle,
+            ),
+        )
+    }
+
+    fun openRoomLink(value: String) {
+        val input = parseRoomInput(value)
+        uiState = if (input == null) {
+            uiState.copy(
+                join = RoomJoinUiState(
+                    displayName = uiState.join.displayName,
+                    status = RoomJoinStatus.Error(INVALID_ROOM_LINK_MESSAGE),
+                ),
+            )
+        } else {
+            uiState.copy(
+                serverUrl = input.serverBaseUrl ?: uiState.serverUrl,
+                join = uiState.join.copy(
+                    mode = RoomJoinMode.JoiningRoom(
+                        roomIdInput = input.roomId,
+                        roomName = null,
+                        accessPinRequired = false,
+                    ),
+                    status = RoomJoinStatus.Idle,
+                ),
+            )
+        }
+    }
+
+    fun selectRoom(room: ActiveRoom) {
+        uiState = uiState.copy(
+            join = uiState.join.copy(
+                mode = RoomJoinMode.JoiningRoom(
+                    roomIdInput = room.id,
+                    roomName = room.name,
+                    accessPinRequired = room.accessPinProtected,
+                ),
+                accessPin = "",
+                status = RoomJoinStatus.Idle,
+            ),
+        )
+    }
+
+    fun updateDisplayName(value: String) {
+        uiState = uiState.copy(
+            join = uiState.join.copy(
+                displayName = value,
+                status = RoomJoinStatus.Idle,
+            ),
+        )
+    }
+
+    fun updateAccessPin(value: String) {
+        uiState = uiState.copy(
+            join = uiState.join.copy(
+                accessPin = value,
+                status = RoomJoinStatus.Idle,
+            ),
+        )
+    }
+
+    fun cancelJoin() {
+        uiState = uiState.copy(join = RoomJoinUiState(displayName = uiState.join.displayName))
+    }
+
+    fun submitJoin() {
+        val joiningRoom = uiState.join.mode as? RoomJoinMode.JoiningRoom
+        val roomId = joiningRoom?.roomIdInput?.trim().orEmpty()
+        val serverUrl = uiState.serverUrl.trim()
+        val displayName = uiState.join.displayName.trim()
+        val accessPin = uiState.join.accessPin.trim()
+        val errorMessage = when {
+            serverUrl.isEmpty() -> "Enter a server URL before joining."
+            roomId.isEmpty() || roomId.length > MAX_SHARED_TEXT_LENGTH || roomId.any(Char::isWhitespace) -> {
+                INVALID_ROOM_LINK_MESSAGE
+            }
+            displayName.isEmpty() -> "Enter a display name before joining."
+            displayName.length > MAX_SHARED_TEXT_LENGTH -> "Display name must be 200 characters or fewer."
+            joiningRoom?.accessPinRequired == true && accessPin.isEmpty() -> {
+                "Enter the room access PIN to continue."
+            }
+            accessPin.length > MAX_PIN_LENGTH -> "Access PIN must be 64 characters or fewer."
+            else -> null
+        }
+
+        uiState = if (errorMessage == null) {
+            uiState.copy(
+                join = uiState.join.copy(
+                    status = RoomJoinStatus.ReadyToConnect(
+                        RoomJoinRequest(
+                            serverBaseUrl = serverUrl,
+                            roomId = roomId,
+                            displayName = displayName,
+                            accessPin = accessPin.takeIf { it.isNotEmpty() },
+                        ),
+                    ),
+                ),
+            )
+        } else {
+            uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.Error(errorMessage)))
+        }
     }
 
     suspend fun loadActiveRooms() {
@@ -78,6 +195,7 @@ class RoomDiscoveryStateHolder(
 data class RoomDiscoveryUiState(
     val serverUrl: String,
     val status: RoomDiscoveryStatus,
+    val join: RoomJoinUiState = RoomJoinUiState(),
 )
 
 sealed interface RoomDiscoveryStatus {
@@ -98,3 +216,107 @@ sealed interface RoomDiscoveryStatus {
         val staleRooms: List<ActiveRoom>?,
     ) : RoomDiscoveryStatus
 }
+
+data class RoomJoinUiState(
+    val mode: RoomJoinMode = RoomJoinMode.ManualEntry,
+    val displayName: String = "",
+    val accessPin: String = "",
+    val status: RoomJoinStatus = RoomJoinStatus.Idle,
+)
+
+sealed interface RoomJoinMode {
+    data object ManualEntry : RoomJoinMode
+
+    data class JoiningRoom(
+        val roomIdInput: String,
+        val roomName: String?,
+        val accessPinRequired: Boolean,
+    ) : RoomJoinMode
+}
+
+sealed interface RoomJoinStatus {
+    data object Idle : RoomJoinStatus
+
+    data class ReadyToConnect(val request: RoomJoinRequest) : RoomJoinStatus
+
+    data class Error(val message: String) : RoomJoinStatus
+}
+
+data class RoomJoinRequest(
+    val serverBaseUrl: String,
+    val roomId: String,
+    val displayName: String,
+    val accessPin: String?,
+)
+
+private data class RoomInput(
+    val roomId: String,
+    val serverBaseUrl: String?,
+)
+
+private const val MAX_SHARED_TEXT_LENGTH = 200
+private const val MAX_PIN_LENGTH = 64
+private const val INVALID_ROOM_LINK_MESSAGE = "Enter a valid room link or room ID."
+private const val HTTP_SCHEME = "http"
+private const val HTTPS_SCHEME = "https"
+private const val ROOM_QUERY_PARAMETER = "room"
+private const val ROOT_PATH = "/"
+
+private fun parseRoomInput(value: String): RoomInput? {
+    val trimmed = value.trim()
+    val sharedLink = trimmed
+        .takeUnless { it.isEmpty() }
+        ?.split(Regex("\\s+"))
+        ?.firstOrNull { it.contains("?room=") || it.contains("&room=") }
+    return parseRoomLink(trimmed)
+        ?: sharedLink?.let(::parseRoomLink)
+        ?: parseManualRoomId(trimmed)
+}
+
+private fun parseManualRoomId(value: String): RoomInput? {
+    val uri = runCatching { URI(value) }.getOrNull()
+    return RoomInput(
+        roomId = value,
+        serverBaseUrl = null,
+    ).takeUnless {
+        value.isEmpty() || value.any(Char::isWhitespace) || !uri?.scheme.isNullOrBlank()
+    }
+}
+
+private fun parseRoomLink(value: String): RoomInput? {
+    val uri = runCatching { URI(value) }.getOrNull()
+    return uri
+        ?.takeIf { it.scheme in setOf(HTTP_SCHEME, HTTPS_SCHEME) && it.userInfo == null && !it.host.isNullOrBlank() }
+        ?.rawQuery
+        ?.split('&')
+        ?.firstNotNullOfOrNull { parameter -> parameter.toRoomQueryValue() }
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?.let { roomId ->
+            RoomInput(
+                roomId = roomId,
+                serverBaseUrl = uri.toServerBaseUrl(),
+            )
+        }
+}
+
+private fun String.toRoomQueryValue(): String? {
+    val parts = split('=', limit = 2)
+    val name = parts.firstOrNull()?.decodeUrlComponentOrNull()
+    val parameterValue = parts.getOrNull(1)?.decodeUrlComponentOrNull()
+    return parameterValue?.takeIf { name == ROOM_QUERY_PARAMETER }
+}
+
+private fun URI.toServerBaseUrl(): String =
+    URI(
+        scheme.lowercase(),
+        null,
+        host,
+        port,
+        path.takeUnless { it.isNullOrBlank() || it == ROOT_PATH },
+        null,
+        null,
+    ).toString().trimEnd('/')
+
+private fun String.decodeUrlComponentOrNull(): String? =
+    runCatching { URLDecoder.decode(this, StandardCharsets.UTF_8.name()) }.getOrNull()
