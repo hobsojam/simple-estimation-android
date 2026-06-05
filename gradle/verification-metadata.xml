@@ -7,6 +7,7 @@
          <trust file=".*-javadoc\.jar" regex="true" reason="Documentation does not affect build output"/>
          <trust file=".*-sources\.jar" regex="true" reason="Source JARs are for IDE navigation only and do not affect build output"/>
          <trust file=".*-src\.zip" regex="true" reason="Source zip are for IDE navigation only and do not affect build output"/>
+         <trust file=".*-(linux|windows|osx|darwin).*\.jar" regex="true" reason="Platform-specific build tool variants (e.g. aapt2) cannot be captured from a single-platform dev machine; trusted by classifier rather than hash"/>
       </trusted-artifacts>
    </configuration>
    <components>
