@@ -74,14 +74,17 @@ reconstruct state from local commands.
 
 ### Protocol Compatibility
 
-Before joining a room, call:
+The app includes a server configuration screen where participants enter a Simple
+Estimation server URL, room ID, and display name. Before joining a room, the app
+validates the server URL and calls:
 
 ```text
 GET /api/config
 ```
 
-The client must reject protocol versions it does not support and show a useful
-upgrade message. The initial app should support protocol version `1`.
+The client rejects protocol versions it does not support and shows a useful
+upgrade message. The initial app supports protocol version `1`. If the server
+reports demo mode, the app surfaces a warning before the participant continues.
 
 ### Connectivity
 
@@ -99,7 +102,9 @@ http://10.0.2.2:3000
 ws://10.0.2.2:3000/ws
 ```
 
-Cleartext HTTP and WebSocket traffic should be permitted only in debug builds.
+Cleartext HTTP and WebSocket traffic is permitted only in debug builds. Release
+builds validate server URLs as `https://` and use a release network-security
+configuration that denies cleartext traffic.
 
 ### Session Identity
 

@@ -9,6 +9,7 @@
         android:fullBackupContent="false"
         android:icon="@drawable/ic_launcher"
         android:label="Simple Estimation"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.SimpleEstimation">
         <activity
