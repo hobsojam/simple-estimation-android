@@ -56,45 +56,34 @@ class RoomDiscoveryStateHolder(
         }
     }
 
-    private fun RoomDiscoveryStatus.roomsOrNull(): List<ActiveRoom>? =
-        when (this) {
-            is RoomDiscoveryStatus.Loaded -> rooms
-            is RoomDiscoveryStatus.Loading -> previousRooms
-            is RoomDiscoveryStatus.Error -> staleRooms
-            RoomDiscoveryStatus.Idle -> null
-            is RoomDiscoveryStatus.Empty -> null
-        }
+    private fun RoomDiscoveryStatus.roomsOrNull(): List<ActiveRoom>? = when (this) {
+        is RoomDiscoveryStatus.Loaded -> rooms
+        is RoomDiscoveryStatus.Loading -> previousRooms
+        is RoomDiscoveryStatus.Error -> staleRooms
+        RoomDiscoveryStatus.Idle -> null
+        is RoomDiscoveryStatus.Empty -> null
+    }
 
-    private fun ActiveRoomDiscoveryFailure.toUserMessage(): String =
-        when (this) {
-            ActiveRoomDiscoveryFailure.InvalidServerUrl -> "Enter a valid server URL."
-            ActiveRoomDiscoveryFailure.InsecureServerUrl -> "Use an HTTPS server URL for this build."
-            ActiveRoomDiscoveryFailure.NetworkUnavailable -> "Could not reach the server. Check the URL and connection."
-            ActiveRoomDiscoveryFailure.ServerUnavailable -> "The server could not load active rooms right now."
-            ActiveRoomDiscoveryFailure.MalformedResponse -> "The server returned an unsupported room list."
-        }
+    private fun ActiveRoomDiscoveryFailure.toUserMessage(): String = when (this) {
+        ActiveRoomDiscoveryFailure.InvalidServerUrl -> "Enter a valid server URL."
+        ActiveRoomDiscoveryFailure.InsecureServerUrl -> "Use an HTTPS server URL for this build."
+        ActiveRoomDiscoveryFailure.NetworkUnavailable -> "Could not reach the server. Check the URL and connection."
+        ActiveRoomDiscoveryFailure.ServerUnavailable -> "The server could not load active rooms right now."
+        ActiveRoomDiscoveryFailure.MalformedResponse -> "The server returned an unsupported room list."
+    }
 }
 
-data class RoomDiscoveryUiState(
-    val serverUrl: String,
-    val status: RoomDiscoveryStatus,
-)
+data class RoomDiscoveryUiState(val serverUrl: String, val status: RoomDiscoveryStatus)
 
 sealed interface RoomDiscoveryStatus {
     data object Idle : RoomDiscoveryStatus
 
     data class Loading(val previousRooms: List<ActiveRoom>?) : RoomDiscoveryStatus
 
-    data class Loaded(
-        val rooms: List<ActiveRoom>,
-        val loadedAt: Instant,
-        val isStale: Boolean,
-    ) : RoomDiscoveryStatus
+    data class Loaded(val rooms: List<ActiveRoom>, val loadedAt: Instant, val isStale: Boolean) :
+        RoomDiscoveryStatus
 
     data class Empty(val loadedAt: Instant) : RoomDiscoveryStatus
 
-    data class Error(
-        val message: String,
-        val staleRooms: List<ActiveRoom>?,
-    ) : RoomDiscoveryStatus
+    data class Error(val message: String, val staleRooms: List<ActiveRoom>?) : RoomDiscoveryStatus
 }

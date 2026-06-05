@@ -65,10 +65,7 @@ internal fun ActiveBacklogItemCard(label: String) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun VoteCards(
-    selectedVote: String?,
-    onVoteSelected: (String) -> Unit,
-) {
+internal fun VoteCards(selectedVote: String?, onVoteSelected: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = "Choose your estimate",
@@ -100,7 +97,9 @@ internal fun VoteCards(
 internal fun VotingProgressCard(progress: VotingProgress) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -174,14 +173,19 @@ internal fun RevealedVotesCard(state: PlanningPokerUiState) {
 internal fun TimerCard(timer: PlanningPokerTimer) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        ),
     ) {
         Text(
             text = "Timer: ${timer.remainingSeconds.secondsAsClock()}",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
                 .padding(16.dp)
-                .semantics { contentDescription = "Timer ${timer.remainingSeconds.secondsAsClock()} remaining" },
+                .semantics {
+                    contentDescription =
+                        "Timer ${timer.remainingSeconds.secondsAsClock()} remaining"
+                },
         )
     }
 }

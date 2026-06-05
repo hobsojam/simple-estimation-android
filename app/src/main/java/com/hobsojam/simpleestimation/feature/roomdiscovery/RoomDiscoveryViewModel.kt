@@ -6,9 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomRepository
 import kotlinx.coroutines.launch
 
-class RoomDiscoveryViewModel(
-    repository: ActiveRoomRepository,
-) : ViewModel() {
+class RoomDiscoveryViewModel(repository: ActiveRoomRepository) : ViewModel() {
     private val stateHolder = RoomDiscoveryStateHolder(repository = repository)
 
     val uiState: RoomDiscoveryUiState
@@ -24,9 +22,7 @@ class RoomDiscoveryViewModel(
         }
     }
 
-    class Factory(
-        private val repositoryFactory: () -> ActiveRoomRepository,
-    ) : ViewModelProvider.Factory {
+    class Factory(private val repositoryFactory: () -> ActiveRoomRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(RoomDiscoveryViewModel::class.java)) {

@@ -90,14 +90,13 @@ private fun RoomDiscoveryContent(
 
 private const val REFRESH_ROOM_LIST_BUTTON_TEXT = "Refresh room list"
 
-private fun loadButtonText(status: RoomDiscoveryStatus): String =
-    when (status) {
-        RoomDiscoveryStatus.Idle -> "Load active rooms"
-        is RoomDiscoveryStatus.Loading -> "Loading rooms"
-        is RoomDiscoveryStatus.Empty -> REFRESH_ROOM_LIST_BUTTON_TEXT
-        is RoomDiscoveryStatus.Error -> REFRESH_ROOM_LIST_BUTTON_TEXT
-        is RoomDiscoveryStatus.Loaded -> REFRESH_ROOM_LIST_BUTTON_TEXT
-    }
+private fun loadButtonText(status: RoomDiscoveryStatus): String = when (status) {
+    RoomDiscoveryStatus.Idle -> "Load active rooms"
+    is RoomDiscoveryStatus.Loading -> "Loading rooms"
+    is RoomDiscoveryStatus.Empty -> REFRESH_ROOM_LIST_BUTTON_TEXT
+    is RoomDiscoveryStatus.Error -> REFRESH_ROOM_LIST_BUTTON_TEXT
+    is RoomDiscoveryStatus.Loaded -> REFRESH_ROOM_LIST_BUTTON_TEXT
+}
 
 @Composable
 private fun RoomDiscoveryStatusContent(status: RoomDiscoveryStatus) {
@@ -144,10 +143,7 @@ private fun ErrorRooms(status: RoomDiscoveryStatus.Error) {
 }
 
 @Composable
-private fun RoomList(
-    rooms: List<ActiveRoom>,
-    staleMessage: String?,
-) {
+private fun RoomList(rooms: List<ActiveRoom>, staleMessage: String?) {
     staleMessage?.let {
         Text(
             text = it,

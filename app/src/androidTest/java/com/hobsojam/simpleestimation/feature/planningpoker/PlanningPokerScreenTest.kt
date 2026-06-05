@@ -40,7 +40,9 @@ class PlanningPokerScreenTest {
             .performClick()
 
         composeRule.onNodeWithText("Joined as Avery").assertIsDisplayed()
-        composeRule.onNodeWithText("HOB-11 Build Planning Poker participant screen").assertIsDisplayed()
+        composeRule.onNodeWithText(
+            "HOB-11 Build Planning Poker participant screen",
+        ).assertIsDisplayed()
     }
 
     @Test
@@ -57,7 +59,9 @@ class PlanningPokerScreenTest {
 
         composeRule.onNodeWithText("3 of 4 participants have voted").assertIsDisplayed()
         PlanningPokerVoteCards.forEach { vote ->
-            composeRule.onNodeWithContentDescription(voteContentDescriptionForTest(vote)).assertIsDisplayed()
+            composeRule.onNodeWithContentDescription(
+                voteContentDescriptionForTest(vote),
+            ).assertIsDisplayed()
         }
 
         composeRule.onNodeWithContentDescription("Vote infinity").performClick()

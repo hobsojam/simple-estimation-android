@@ -16,10 +16,7 @@ data class PlanningPokerUiState(
     val votesAreRevealed: Boolean = revealedVotes.isNotEmpty()
 }
 
-data class VotingProgress(
-    val votedCount: Int,
-    val participantCount: Int,
-) {
+data class VotingProgress(val votedCount: Int, val participantCount: Int) {
     init {
         require(votedCount >= 0) { "votedCount must be non-negative" }
         require(participantCount >= 0) { "participantCount must be non-negative" }
@@ -27,15 +24,10 @@ data class VotingProgress(
     }
 }
 
-data class PlanningPokerTimer(
-    val remainingSeconds: Int,
-) {
+data class PlanningPokerTimer(val remainingSeconds: Int) {
     init {
         require(remainingSeconds >= 0) { "remainingSeconds must be non-negative" }
     }
 }
 
-data class RevealedVote(
-    val participantName: String,
-    val vote: String,
-)
+data class RevealedVote(val participantName: String, val vote: String)

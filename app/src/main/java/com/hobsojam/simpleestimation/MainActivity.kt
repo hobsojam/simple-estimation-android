@@ -37,11 +37,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SimpleEstimationApp(
-    uiState: RoomDiscoveryUiState,
-    onServerUrlChanged: (String) -> Unit,
-    onLoadRooms: () -> Unit,
-) {
+fun SimpleEstimationApp(uiState: RoomDiscoveryUiState, onServerUrlChanged: (String) -> Unit, onLoadRooms: () -> Unit) {
     MaterialTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),

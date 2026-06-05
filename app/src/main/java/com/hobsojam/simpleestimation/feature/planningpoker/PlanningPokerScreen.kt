@@ -52,11 +52,7 @@ fun PlanningPokerParticipantRoute() {
 }
 
 @Composable
-fun PlanningPokerScreen(
-    state: PlanningPokerUiState,
-    onVoteSelected: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun PlanningPokerScreen(state: PlanningPokerUiState, onVoteSelected: (String) -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -79,10 +75,7 @@ fun PlanningPokerScreen(
     }
 }
 
-private fun samplePlanningPokerState(
-    participantName: String,
-    selectedVote: String?,
-): PlanningPokerUiState {
+private fun samplePlanningPokerState(participantName: String, selectedVote: String?): PlanningPokerUiState {
     val votesAreRevealed = selectedVote != null
     val participantVote = selectedVote ?: "5"
     return PlanningPokerUiState(

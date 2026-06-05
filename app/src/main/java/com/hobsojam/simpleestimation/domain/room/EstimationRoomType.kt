@@ -7,7 +7,6 @@ enum class EstimationRoomType(val protocolValue: String, val displayName: String
     ;
 
     companion object {
-        fun fromProtocolValue(value: String): EstimationRoomType? =
-            entries.firstOrNull { it.protocolValue == value }
+        fun fromProtocolValue(value: String): EstimationRoomType? = entries.firstOrNull { it.protocolValue == value }
     }
 }
