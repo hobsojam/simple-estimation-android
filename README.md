@@ -153,6 +153,15 @@ and review the checksum changes before committing them:
 .\gradlew.bat --write-verification-metadata sha256 ktlintCheck detekt koverXmlReportDebug lint assembleDebug
 ```
 
+CI runs verification automatically on every build — it must not pass
+`--write-verification-metadata`, otherwise a tampered dependency would silently
+record a new hash and the check would be meaningless. The committed hashes are
+the trust anchor; regenerate them only when intentionally changing dependencies,
+then commit both the dependency change and the updated metadata together.
+A Claude Code hook could automate regeneration after edits to `libs.versions.toml`
+or `*.gradle.kts`, but this reduces security: hashes regenerated without manual
+review offer weaker protection against supply chain tampering.
+
 Gradle Doctor runs automatically with Gradle builds and reports actionable
 local build-environment and performance problems.
 Run `.\gradlew.bat dependencyCheckAnalyze` to scan resolved dependencies for
