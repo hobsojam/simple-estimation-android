@@ -82,6 +82,23 @@ Avoid dependencies in the opposite direction. Domain code must not depend on
 Compose, Android framework UI types, HTTP clients, WebSocket clients, or JSON
 libraries.
 
+## Server Configuration and Compatibility
+
+The server configuration feature validates a participant-entered Simple
+Estimation base URL before any room join attempt. `https://` is accepted in all
+builds. `http://` is accepted only when the caller marks cleartext as allowed,
+which app wiring limits to debug builds through `BuildConfig.DEBUG`. WebSocket
+URLs are derived from the validated base URL by switching `https` to `wss` and
+`http` to `ws`, then appending `/ws`; the app does not accept an independent
+WebSocket URL.
+
+Before continuing toward a room connection, the feature fetches `GET /api/config`
+and maps the response into a domain `ServerConfig`. Protocol version `1` is the
+only supported version for the MVP. Unsupported protocol versions produce an
+upgrade message instead of attempting a WebSocket connection. When the server
+reports demo mode, the UI surfaces a visible warning alongside the compatible
+state.
+
 ## Protocol Boundary
 
 Protocol DTOs are not UI models and are not the app's domain model.
@@ -261,6 +278,8 @@ Static analysis is intentionally pragmatic at the scaffold stage:
   an optional API key speeds up updates. It remains separate from pull-request
   CI because NVD updates are slow and externally rate-limited.
 
-No production networking, persistence, dependency-injection, JSON, HTTP, or
-WebSocket libraries are included yet. Those choices remain tied to the first
-protocol implementation work and must follow the server contract.
+The first protocol implementation uses the Android/JDK standard networking
+stack for `GET /api/config` and a small hand-written parser for the public
+configuration response, avoiding new production dependencies. Persistence,
+dependency injection, broader JSON handling, and WebSocket library choices remain
+tied to later protocol implementation work and must follow the server contract.
