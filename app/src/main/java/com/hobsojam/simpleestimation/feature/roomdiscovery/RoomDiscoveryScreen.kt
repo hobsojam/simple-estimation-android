@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -32,18 +31,18 @@ import androidx.compose.ui.unit.dp
 import com.hobsojam.simpleestimation.domain.room.ActiveRoom
 import com.hobsojam.simpleestimation.domain.room.EstimationRoomType
 import java.time.Instant
-import kotlinx.coroutines.launch
 
 @Composable
 fun RoomDiscoveryScreen(
-    stateHolder: RoomDiscoveryStateHolder,
+    uiState: RoomDiscoveryUiState,
+    onServerUrlChanged: (String) -> Unit,
+    onLoadRooms: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
     RoomDiscoveryContent(
-        uiState = stateHolder.uiState,
-        onServerUrlChanged = stateHolder::updateServerUrl,
-        onLoadRooms = { scope.launch { stateHolder.loadActiveRooms() } },
+        uiState = uiState,
+        onServerUrlChanged = onServerUrlChanged,
+        onLoadRooms = onLoadRooms,
         modifier = modifier,
     )
 }
@@ -89,13 +88,15 @@ private fun RoomDiscoveryContent(
     }
 }
 
+private const val REFRESH_ROOM_LIST_BUTTON_TEXT = "Refresh room list"
+
 private fun loadButtonText(status: RoomDiscoveryStatus): String =
     when (status) {
         RoomDiscoveryStatus.Idle -> "Load active rooms"
         is RoomDiscoveryStatus.Loading -> "Loading rooms"
-        is RoomDiscoveryStatus.Empty -> "Refresh room list"
-        is RoomDiscoveryStatus.Error -> "Refresh room list"
-        is RoomDiscoveryStatus.Loaded -> "Refresh room list"
+        is RoomDiscoveryStatus.Empty -> REFRESH_ROOM_LIST_BUTTON_TEXT
+        is RoomDiscoveryStatus.Error -> REFRESH_ROOM_LIST_BUTTON_TEXT
+        is RoomDiscoveryStatus.Loaded -> REFRESH_ROOM_LIST_BUTTON_TEXT
     }
 
 @Composable
