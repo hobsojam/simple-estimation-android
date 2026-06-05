@@ -19,9 +19,7 @@ class ActiveRoomsJsonParser {
         val type = EstimationRoomType.fromProtocolValue(room.requiredString("type"))
             ?: throw ProtocolParseException()
         val name = room.optionalString("name")?.trim()?.requireSharedText()
-        val participantCount = room.requiredInt("participantCount")
-            .takeIf { it in 0..MAX_PARTICIPANTS }
-            ?: throw ProtocolParseException()
+        val participantCount = room.requiredBoundedInt("participantCount", 0..MAX_PARTICIPANTS)
 
         return ActiveRoom(
             id = id,
@@ -50,6 +48,9 @@ class ActiveRoomsJsonParser {
         val number = (values[name] as? JsonValue.NumberValue)?.value ?: throw ProtocolParseException()
         return number.toIntOrNull()?.takeIf { it.toString() == number } ?: throw ProtocolParseException()
     }
+
+    private fun JsonValue.ObjectValue.requiredBoundedInt(name: String, range: IntRange): Int =
+        requiredInt(name).takeIf { it in range } ?: throw ProtocolParseException()
 
     private fun String.requireSharedText(): String =
         takeIf { it.isNotEmpty() && it.length <= MAX_SHARED_TEXT_LENGTH } ?: throw ProtocolParseException()
@@ -88,9 +89,21 @@ private class JsonParser(private val source: String) {
             '[' -> parseArray()
             '{' -> parseObject()
             '"' -> JsonValue.StringValue(parseString())
-            't' -> parseLiteral("true", JsonValue.BooleanValue(true))
-            'f' -> parseLiteral("false", JsonValue.BooleanValue(false))
-            'n' -> parseLiteral("null", JsonValue.NullValue)
+            't' -> {
+                if (!source.startsWith("true", index)) throw ProtocolParseException()
+                index += 4
+                JsonValue.BooleanValue(true)
+            }
+            'f' -> {
+                if (!source.startsWith("false", index)) throw ProtocolParseException()
+                index += 5
+                JsonValue.BooleanValue(false)
+            }
+            'n' -> {
+                if (!source.startsWith("null", index)) throw ProtocolParseException()
+                index += 4
+                JsonValue.NullValue
+            }
             '-', in '0'..'9' -> JsonValue.NumberValue(parseNumber())
             else -> throw ProtocolParseException()
         }
@@ -142,59 +155,50 @@ private class JsonParser(private val source: String) {
         throw ProtocolParseException()
     }
 
-    private fun parseEscape(): Char =
-        when (val escaped = readChar()) {
+    private fun parseEscape(): Char {
+        if (index >= source.length) throw ProtocolParseException()
+        return when (val escaped = source[index++]) {
             '"', '\\', '/' -> escaped
             'b' -> '\b'
             'f' -> '\u000C'
             'n' -> '\n'
             'r' -> '\r'
             't' -> '\t'
-            'u' -> parseUnicodeEscape()
+            'u' -> {
+                if (index + UNICODE_ESCAPE_LENGTH > source.length) throw ProtocolParseException()
+                val hex = source.substring(index, index + UNICODE_ESCAPE_LENGTH)
+                val codePoint = hex.toIntOrNull(16) ?: throw ProtocolParseException()
+                index += UNICODE_ESCAPE_LENGTH
+                codePoint.toChar()
+            }
             else -> throw ProtocolParseException()
         }
-
-    private fun parseUnicodeEscape(): Char {
-        if (index + UNICODE_ESCAPE_LENGTH > source.length) throw ProtocolParseException()
-        val hex = source.substring(index, index + UNICODE_ESCAPE_LENGTH)
-        if (!hex.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) {
-            throw ProtocolParseException()
-        }
-        index += UNICODE_ESCAPE_LENGTH
-        return hex.toInt(radix = 16).toChar()
     }
 
     private fun parseNumber(): String {
+        fun requireDigits() {
+            val digitStart = index
+            while (peek() in '0'..'9') index++
+            if (digitStart == index) throw ProtocolParseException()
+        }
         val start = index
         tryConsume('-')
         if (peek() == '0') {
             index++
         } else {
-            consumeDigits()
+            requireDigits()
         }
-        if (tryConsume('.')) consumeDigits()
+        if (tryConsume('.')) requireDigits()
         if (peek() == 'e' || peek() == 'E') {
             index++
             if (peek() == '+' || peek() == '-') index++
-            consumeDigits()
+            requireDigits()
         }
         return source.substring(start, index)
     }
 
-    private fun consumeDigits() {
-        val start = index
-        while (peek() in '0'..'9') index++
-        if (start == index) throw ProtocolParseException()
-    }
-
-    private fun parseLiteral(literal: String, value: JsonValue): JsonValue {
-        if (!source.startsWith(literal, index)) throw ProtocolParseException()
-        index += literal.length
-        return value
-    }
-
     private fun skipWhitespace() {
-        while (peek() == ' ' || peek() == '\n' || peek() == '\r' || peek() == '\t') index++
+        while (JSON_WHITESPACE.contains(peek() ?: return)) index++
     }
 
     private fun consume(expected: Char) {
@@ -209,14 +213,10 @@ private class JsonParser(private val source: String) {
             false
         }
 
-    private fun readChar(): Char {
-        if (index >= source.length) throw ProtocolParseException()
-        return source[index++]
-    }
-
     private fun peek(): Char? = source.getOrNull(index)
 
     private companion object {
         const val UNICODE_ESCAPE_LENGTH = 4
+        const val JSON_WHITESPACE = " \n\r\t"
     }
 }
