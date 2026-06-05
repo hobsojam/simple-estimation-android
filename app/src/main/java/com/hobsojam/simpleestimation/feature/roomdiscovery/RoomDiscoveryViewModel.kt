@@ -3,14 +3,19 @@ package com.hobsojam.simpleestimation.feature.roomdiscovery
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.hobsojam.simpleestimation.BuildConfig
 import com.hobsojam.simpleestimation.domain.room.ActiveRoom
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomRepository
 import kotlinx.coroutines.launch
 
 class RoomDiscoveryViewModel(
     repository: ActiveRoomRepository,
+    cleartextAllowed: Boolean = false,
 ) : ViewModel() {
-    private val stateHolder = RoomDiscoveryStateHolder(repository = repository)
+    private val stateHolder = RoomDiscoveryStateHolder(
+        repository = repository,
+        cleartextAllowed = cleartextAllowed,
+    )
 
     val uiState: RoomDiscoveryUiState
         get() = stateHolder.uiState
@@ -59,7 +64,10 @@ class RoomDiscoveryViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(RoomDiscoveryViewModel::class.java)) {
-                return RoomDiscoveryViewModel(repository = repositoryFactory()) as T
+                return RoomDiscoveryViewModel(
+                    repository = repositoryFactory(),
+                    cleartextAllowed = BuildConfig.DEBUG,
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
