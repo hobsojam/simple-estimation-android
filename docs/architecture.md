@@ -12,12 +12,13 @@ README owns product scope. Linear owns delivery status and sequencing.
 | UI | Jetpack Compose |
 | Initial module shape | Single `app` Gradle module |
 | Package namespace | `com.hobsojam.simpleestimation` |
-| Build system | Gradle wrapper with Android Gradle Plugin built-in Kotlin, Compose compiler plugin, ktlint, and Detekt |
+| Build system | Gradle wrapper with AGP built-in Kotlin, Compose compiler plugin, ktlint, and Detekt |
 | Presentation pattern | ViewModel/state-holder per feature with immutable UI state |
 | State flow | Unidirectional events to state |
 | Protocol model | Server DTOs mapped into domain models |
 | Persistence | Session-first; only non-sensitive configuration may persist |
 | Networking | HTTP for configuration/discovery, WebSocket for room state/actions |
+| Initial HTTP implementation | `HttpURLConnection` plus focused protocol parsing, without new production dependencies |
 
 ## Module Strategy
 
@@ -101,6 +102,19 @@ The mapper is where the app handles:
 - user-safe error categories
 
 Do not let composables or feature screens inspect raw JSON or protocol DTOs.
+
+
+## Room Discovery
+
+The initial room-discovery flow uses the documented `GET /api/rooms` response
+and maps it into domain `ActiveRoom` models before presentation. Unknown JSON
+fields are ignored, while missing required fields, unsupported room types,
+invalid text lengths, invalid booleans, and participant counts outside the
+server limit are treated as malformed responses with user-safe errors.
+
+Refresh keeps the last successful room list visible as stale data if the next
+request fails, so users do not lose context during transient outages. Room
+payloads and server response bodies must not be logged.
 
 ## State Model
 
@@ -206,10 +220,10 @@ belong in a small integration suite.
 
 ## Open Decisions
 
-Resolve these after the Gradle scaffold work:
+Resolve these as protocol work expands:
 
-- HTTP/WebSocket client libraries
-- JSON serialization library
+- WebSocket client library
+- Whether broader JSON serialization needs a maintained library after the initial active-room parser
 - Whether dependency wiring stays manual or uses a lightweight framework
 - Whether server URL persistence uses DataStore or a simpler MVP mechanism
 

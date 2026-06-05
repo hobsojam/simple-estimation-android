@@ -234,4 +234,7 @@ Linear.
 
 ## Status
 
-Initial Android Gradle scaffold is present with ktlint, Detekt, unit-test, Android lint, and debug assembly checks wired into CI.
+Initial Android Gradle scaffold is present with ktlint, Detekt, unit-test,
+Android lint, and debug assembly checks wired into CI. The app can load and
+refresh active rooms from a configured Simple Estimation server, including empty,
+loading, error, malformed-response, and stale refresh states.
