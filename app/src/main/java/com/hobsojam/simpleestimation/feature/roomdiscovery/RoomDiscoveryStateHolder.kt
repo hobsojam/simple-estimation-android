@@ -7,6 +7,7 @@ import com.hobsojam.simpleestimation.domain.room.ActiveRoom
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomDiscoveryFailure
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomDiscoveryResult
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomRepository
+import com.hobsojam.simpleestimation.domain.server.ServerBaseUrl
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -17,6 +18,7 @@ class RoomDiscoveryStateHolder(
     private val repository: ActiveRoomRepository,
     private val clock: Clock = Clock.systemUTC(),
     initialServerUrl: String = "",
+    private val cleartextAllowed: Boolean = false,
 ) {
     var uiState by mutableStateOf(
         RoomDiscoveryUiState(
@@ -28,7 +30,10 @@ class RoomDiscoveryStateHolder(
         private set
 
     fun updateServerUrl(serverUrl: String) {
-        uiState = uiState.copy(serverUrl = serverUrl)
+        uiState = uiState.copy(
+            serverUrl = serverUrl,
+            join = uiState.join.copy(accessPin = "", status = RoomJoinStatus.Idle),
+        )
     }
 
     fun updateManualRoomInput(value: String) {
@@ -41,6 +46,7 @@ class RoomDiscoveryStateHolder(
                     roomName = null,
                     accessPinRequired = false,
                 ),
+                accessPin = "",
                 status = RoomJoinStatus.Idle,
             ),
         )
@@ -64,6 +70,7 @@ class RoomDiscoveryStateHolder(
                         roomName = null,
                         accessPinRequired = false,
                     ),
+                    accessPin = "",
                     status = RoomJoinStatus.Idle,
                 ),
             )
@@ -112,8 +119,10 @@ class RoomDiscoveryStateHolder(
         val serverUrl = uiState.serverUrl.trim()
         val displayName = uiState.join.displayName.trim()
         val accessPin = uiState.join.accessPin.trim()
+        val serverBaseUrl = ServerBaseUrl.parse(serverUrl, cleartextAllowed)
         val errorMessage = when {
             serverUrl.isEmpty() -> "Enter a server URL before joining."
+            serverBaseUrl.isFailure -> serverBaseUrl.exceptionOrNull()?.message ?: "Enter a valid server URL."
             roomId.isEmpty() || roomId.length > MAX_SHARED_TEXT_LENGTH || roomId.any(Char::isWhitespace) -> {
                 INVALID_ROOM_LINK_MESSAGE
             }
@@ -131,7 +140,7 @@ class RoomDiscoveryStateHolder(
                 join = uiState.join.copy(
                     status = RoomJoinStatus.ReadyToConnect(
                         RoomJoinRequest(
-                            serverBaseUrl = serverUrl,
+                            serverBaseUrl = serverBaseUrl.getOrThrow().value,
                             roomId = roomId,
                             displayName = displayName,
                             accessPin = accessPin.takeIf { it.isNotEmpty() },

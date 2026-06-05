@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -68,6 +69,8 @@ internal fun RoomJoinPanel(
                     onValueChange = onAccessPinChanged,
                     label = { Text(accessPinLabel(joiningRoom.accessPinRequired)) },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -109,4 +112,3 @@ private fun RoomJoinStatusMessage(status: RoomJoinStatus) {
 
 private fun accessPinLabel(accessPinRequired: Boolean): String =
     if (accessPinRequired) "Access PIN" else "Access PIN (if required)"
-

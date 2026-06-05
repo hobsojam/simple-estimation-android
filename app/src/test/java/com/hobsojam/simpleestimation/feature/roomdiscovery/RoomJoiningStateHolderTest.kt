@@ -65,7 +65,7 @@ class RoomJoiningStateHolderTest : FunSpec({
     test("manual room id joining trims room id and display name") {
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
-            initialServerUrl = "https://example.com",
+            initialServerUrl = "https://example.com/",
         )
 
         stateHolder.updateManualRoomInput(" room-99 ")
@@ -82,6 +82,58 @@ class RoomJoiningStateHolderTest : FunSpec({
         )
     }
 
+    test("validates server URLs before producing a join request") {
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "not a url",
+        )
+
+        stateHolder.updateManualRoomInput("room-99")
+        stateHolder.updateDisplayName("Ada")
+        stateHolder.submitJoin()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.Error(
+            "Enter a valid server URL.",
+        )
+    }
+
+    test("rejects cleartext server URLs unless cleartext is allowed") {
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "http://example.com",
+            cleartextAllowed = false,
+        )
+
+        stateHolder.updateManualRoomInput("room-99")
+        stateHolder.updateDisplayName("Ada")
+        stateHolder.submitJoin()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.Error(
+            "Release builds require an HTTPS Simple Estimation server.",
+        )
+    }
+
+    test("allows cleartext server URLs when cleartext is allowed") {
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "http://10.0.2.2:3000/",
+            cleartextAllowed = true,
+        )
+
+        stateHolder.updateManualRoomInput("room-99")
+        stateHolder.updateDisplayName("Ada")
+        stateHolder.submitJoin()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.ReadyToConnect(
+            RoomJoinRequest(
+                serverBaseUrl = "http://10.0.2.2:3000",
+                roomId = "room-99",
+                displayName = "Ada",
+                accessPin = null,
+            ),
+        )
+    }
+
     test("requires a server URL before producing a join request") {
         val stateHolder = RoomDiscoveryStateHolder(repository = FakeJoiningActiveRoomRepository())
 
@@ -92,6 +144,92 @@ class RoomJoiningStateHolderTest : FunSpec({
         stateHolder.uiState.join.status shouldBe RoomJoinStatus.Error(
             "Enter a server URL before joining.",
         )
+    }
+
+    test("clears stale access PINs when opening a different room link") {
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "https://example.com",
+        )
+        val protectedRoom = ActiveRoom(
+            id = "protected-room",
+            type = EstimationRoomType.PlanningPoker,
+            name = "Protected room",
+            participantCount = 2,
+            pinProtected = false,
+            accessPinProtected = true,
+        )
+
+        stateHolder.selectRoom(protectedRoom)
+        stateHolder.updateAccessPin("secret")
+        stateHolder.openRoomLink("https://rooms.example.com/?room=public-room")
+        stateHolder.updateDisplayName("Ada")
+        stateHolder.submitJoin()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.ReadyToConnect(
+            RoomJoinRequest(
+                serverBaseUrl = "https://rooms.example.com",
+                roomId = "public-room",
+                displayName = "Ada",
+                accessPin = null,
+            ),
+        )
+    }
+
+    test("clears stale access PINs when manual room input changes") {
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "https://example.com",
+        )
+        val protectedRoom = ActiveRoom(
+            id = "protected-room",
+            type = EstimationRoomType.PlanningPoker,
+            name = "Protected room",
+            participantCount = 2,
+            pinProtected = false,
+            accessPinProtected = true,
+        )
+
+        stateHolder.selectRoom(protectedRoom)
+        stateHolder.updateAccessPin("secret")
+        stateHolder.updateManualRoomInput("public-room")
+        stateHolder.updateDisplayName("Ada")
+        stateHolder.submitJoin()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.ReadyToConnect(
+            RoomJoinRequest(
+                serverBaseUrl = "https://example.com",
+                roomId = "public-room",
+                displayName = "Ada",
+                accessPin = null,
+            ),
+        )
+    }
+
+    test("clears stale access PINs when server URL changes") {
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "https://example.com",
+        )
+        val protectedRoom = ActiveRoom(
+            id = "protected-room",
+            type = EstimationRoomType.PlanningPoker,
+            name = "Protected room",
+            participantCount = 2,
+            pinProtected = false,
+            accessPinProtected = true,
+        )
+
+        stateHolder.selectRoom(protectedRoom)
+        stateHolder.updateAccessPin("secret")
+        stateHolder.updateServerUrl("https://other.example.com")
+        stateHolder.updateDisplayName("Ada")
+        stateHolder.submitJoin()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.Error(
+            "Enter the room access PIN to continue.",
+        )
+        stateHolder.uiState.join.accessPin shouldBe ""
     }
 
     test("validates display names with user-safe messages") {
