@@ -58,6 +58,8 @@ class ActiveRoomsJsonParser {
 
 private class ProtocolParseException : IllegalArgumentException()
 
+private fun failParse(): Nothing = throw ProtocolParseException()
+
 private sealed interface JsonValue {
     data class ArrayValue(val values: List<JsonValue>) : JsonValue
 
@@ -90,22 +92,22 @@ private class JsonParser(private val source: String) {
             '{' -> parseObject()
             '"' -> JsonValue.StringValue(parseString())
             't' -> {
-                if (!source.startsWith("true", index)) throw ProtocolParseException()
+                if (!source.startsWith("true", index)) failParse()
                 index += "true".length
                 JsonValue.BooleanValue(true)
             }
             'f' -> {
-                if (!source.startsWith("false", index)) throw ProtocolParseException()
+                if (!source.startsWith("false", index)) failParse()
                 index += "false".length
                 JsonValue.BooleanValue(false)
             }
             'n' -> {
-                if (!source.startsWith("null", index)) throw ProtocolParseException()
+                if (!source.startsWith("null", index)) failParse()
                 index += "null".length
                 JsonValue.NullValue
             }
             '-', in '0'..'9' -> JsonValue.NumberValue(parseNumber())
-            else -> throw ProtocolParseException()
+            else -> failParse()
         }
     }
 
@@ -156,7 +158,7 @@ private class JsonParser(private val source: String) {
     }
 
     private fun parseEscape(): Char {
-        if (index >= source.length) throw ProtocolParseException()
+        if (index >= source.length) failParse()
         return when (val escaped = source[index++]) {
             '"', '\\', '/' -> escaped
             'b' -> '\b'
@@ -165,13 +167,13 @@ private class JsonParser(private val source: String) {
             'r' -> '\r'
             't' -> '\t'
             'u' -> {
-                if (index + UNICODE_ESCAPE_LENGTH > source.length) throw ProtocolParseException()
+                if (index + UNICODE_ESCAPE_LENGTH > source.length) failParse()
                 val hex = source.substring(index, index + UNICODE_ESCAPE_LENGTH)
-                val codePoint = hex.toIntOrNull(HEX_RADIX) ?: throw ProtocolParseException()
+                val codePoint = hex.toIntOrNull(HEX_RADIX) ?: failParse()
                 index += UNICODE_ESCAPE_LENGTH
                 codePoint.toChar()
             }
-            else -> throw ProtocolParseException()
+            else -> failParse()
         }
     }
 
