@@ -130,13 +130,13 @@ class RoomDiscoveryStateHolder(
     }
 
     suspend fun submitJoin() {
+        val token = ++joinRequestToken
         val validation = validateJoinInput()
         if (validation is JoinValidationResult.Invalid) {
             uiState = uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.Error(validation.message)))
             return
         }
         val validInput = validation as JoinValidationResult.Valid
-        val token = ++joinRequestToken
         uiState = uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.CheckingCompatibility))
 
         configClient.fetchConfig(validInput.serverBaseUrl).fold(
