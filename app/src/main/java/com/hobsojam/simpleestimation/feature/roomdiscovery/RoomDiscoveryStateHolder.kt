@@ -3,10 +3,15 @@ package com.hobsojam.simpleestimation.feature.roomdiscovery
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.hobsojam.simpleestimation.data.server.JavaNetServerConfigClient
+import com.hobsojam.simpleestimation.data.server.ServerConfigClient
+import com.hobsojam.simpleestimation.data.server.ServerConfigParseException
 import com.hobsojam.simpleestimation.domain.room.ActiveRoom
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomDiscoveryFailure
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomDiscoveryResult
 import com.hobsojam.simpleestimation.domain.room.ActiveRoomRepository
+import com.hobsojam.simpleestimation.domain.server.ProtocolCompatibility
+import com.hobsojam.simpleestimation.domain.server.ProtocolCompatibilityChecker
 import com.hobsojam.simpleestimation.domain.server.ServerBaseUrl
 import java.net.URI
 import java.net.URLDecoder
@@ -17,6 +22,7 @@ import java.util.UUID
 
 class RoomDiscoveryStateHolder(
     private val repository: ActiveRoomRepository,
+    private val configClient: ServerConfigClient = JavaNetServerConfigClient(),
     private val clock: Clock = Clock.systemUTC(),
     initialServerUrl: String = "",
     private val cleartextAllowed: Boolean = false,
@@ -117,7 +123,38 @@ class RoomDiscoveryStateHolder(
         uiState = uiState.copy(join = RoomJoinUiState(displayName = uiState.join.displayName))
     }
 
-    fun submitJoin() {
+    suspend fun submitJoin() {
+        val validation = validateJoinInput()
+        if (validation is JoinValidationResult.Invalid) {
+            uiState = uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.Error(validation.message)))
+            return
+        }
+        val validInput = validation as JoinValidationResult.Valid
+        uiState = uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.CheckingCompatibility))
+
+        configClient.fetchConfig(validInput.serverBaseUrl).fold(
+            onSuccess = { config ->
+                when (val compatibility = ProtocolCompatibilityChecker.check(config)) {
+                    is ProtocolCompatibility.Compatible -> markReadyToConnect(
+                        validInput = validInput,
+                        demoMode = compatibility.config.demoMode,
+                    )
+                    is ProtocolCompatibility.Unsupported -> {
+                        uiState = uiState.copy(
+                            join = uiState.join.copy(status = RoomJoinStatus.Error(compatibility.message)),
+                        )
+                    }
+                }
+            },
+            onFailure = { exception ->
+                uiState = uiState.copy(
+                    join = uiState.join.copy(status = RoomJoinStatus.Error(exception.toJoinErrorMessage())),
+                )
+            },
+        )
+    }
+
+    private fun validateJoinInput(): JoinValidationResult {
         val joiningRoom = uiState.join.mode as? RoomJoinMode.JoiningRoom
         val roomId = joiningRoom?.roomIdInput?.trim().orEmpty()
         val serverUrl = uiState.serverUrl.trim()
@@ -138,28 +175,45 @@ class RoomDiscoveryStateHolder(
             accessPin.length > MAX_PIN_LENGTH -> "Access PIN must be 64 characters or fewer."
             else -> null
         }
-
-        uiState = if (errorMessage == null) {
-            val validatedServerBaseUrl = serverBaseUrl.getOrThrow().value
-            uiState.copy(
-                join = uiState.join.copy(
-                    status = RoomJoinStatus.ReadyToConnect(
-                        RoomJoinRequest(
-                            serverBaseUrl = validatedServerBaseUrl,
-                            roomId = roomId,
-                            participantId = participantSessionStore.participantIdFor(
-                                serverBaseUrl = validatedServerBaseUrl,
-                                roomId = roomId,
-                            ),
-                            displayName = displayName,
-                            accessPin = accessPin.takeIf { it.isNotEmpty() },
-                        ),
-                    ),
-                ),
+        return if (errorMessage == null) {
+            JoinValidationResult.Valid(
+                serverBaseUrl = serverBaseUrl.getOrThrow(),
+                roomId = roomId,
+                displayName = displayName,
+                accessPin = accessPin.takeIf { it.isNotEmpty() },
             )
         } else {
-            uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.Error(errorMessage)))
+            JoinValidationResult.Invalid(errorMessage)
         }
+    }
+
+    private fun markReadyToConnect(
+        validInput: JoinValidationResult.Valid,
+        demoMode: Boolean,
+    ) {
+        val validatedServerBaseUrl = validInput.serverBaseUrl.value
+        uiState = uiState.copy(
+            join = uiState.join.copy(
+                status = RoomJoinStatus.ReadyToConnect(
+                    request = RoomJoinRequest(
+                        serverBaseUrl = validatedServerBaseUrl,
+                        roomId = validInput.roomId,
+                        participantId = participantSessionStore.participantIdFor(
+                            serverBaseUrl = validatedServerBaseUrl,
+                            roomId = validInput.roomId,
+                        ),
+                        displayName = validInput.displayName,
+                        accessPin = validInput.accessPin,
+                    ),
+                    demoMode = demoMode,
+                ),
+            ),
+        )
+    }
+
+    private fun Throwable.toJoinErrorMessage(): String = when (this) {
+        is ServerConfigParseException -> "The server returned an unsupported configuration. Update Simple Estimation or try another server."
+        else -> message?.takeIf { it.isNotBlank() } ?: "Could not check server compatibility. Check the server URL and try again."
     }
 
     suspend fun loadActiveRooms() {
@@ -255,7 +309,12 @@ sealed interface RoomJoinMode {
 sealed interface RoomJoinStatus {
     data object Idle : RoomJoinStatus
 
-    data class ReadyToConnect(val request: RoomJoinRequest) : RoomJoinStatus
+    data object CheckingCompatibility : RoomJoinStatus
+
+    data class ReadyToConnect(
+        val request: RoomJoinRequest,
+        val demoMode: Boolean,
+    ) : RoomJoinStatus
 
     data class Error(val message: String) : RoomJoinStatus
 }
@@ -267,6 +326,17 @@ data class RoomJoinRequest(
     val displayName: String,
     val accessPin: String?,
 )
+
+private sealed interface JoinValidationResult {
+    data class Valid(
+        val serverBaseUrl: ServerBaseUrl,
+        val roomId: String,
+        val displayName: String,
+        val accessPin: String?,
+    ) : JoinValidationResult
+
+    data class Invalid(val message: String) : JoinValidationResult
+}
 
 private data class ParticipantSessionKey(
     val serverBaseUrl: String,
