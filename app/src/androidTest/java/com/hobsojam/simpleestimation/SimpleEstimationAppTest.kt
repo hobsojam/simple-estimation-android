@@ -3,10 +3,8 @@ package com.hobsojam.simpleestimation
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryStatus
@@ -23,7 +21,7 @@ class SimpleEstimationAppTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun validJoinRequestLeavesDiscoveryAndShowsJoinedRoom() {
+    fun validJoinRequestStaysInDiscoveryUntilCompatibilityAndConnectionRun() {
         var uiState by mutableStateOf(
             RoomDiscoveryUiState(
                 serverUrl = "https://example.com",
@@ -68,9 +66,7 @@ class SimpleEstimationAppTest {
 
         composeRule.onNodeWithText("Join room").performClick()
 
-        composeRule.onAllNodesWithText("Active rooms").assertCountEquals(0)
-        composeRule.onNodeWithText("Joined room").assertIsDisplayed()
-        composeRule.onNodeWithText("Room room-99").assertIsDisplayed()
-        composeRule.onNodeWithText("Joined as Avery").assertIsDisplayed()
+        composeRule.onNodeWithText("Active rooms").assertIsDisplayed()
+        composeRule.onNodeWithText("Ready to connect as Avery.").assertIsDisplayed()
     }
 }

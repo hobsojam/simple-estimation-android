@@ -13,12 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.hobsojam.simpleestimation.data.room.HttpActiveRoomRepository
 import com.hobsojam.simpleestimation.domain.room.ActiveRoom
-import com.hobsojam.simpleestimation.feature.roomdiscovery.JoinedRoomScreen
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryScreen
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryStatus
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryUiState
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryViewModel
-import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinStatus
 
 class MainActivity : ComponentActivity() {
     private val roomDiscoveryViewModel: RoomDiscoveryViewModel by viewModels {
@@ -79,27 +77,18 @@ fun SimpleEstimationApp(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,
         ) {
-            when (val joinStatus = uiState.join.status) {
-                is RoomJoinStatus.ReadyToConnect -> JoinedRoomScreen(
-                    request = joinStatus.request,
-                    modifier = Modifier,
-                )
-
-                RoomJoinStatus.Idle,
-                is RoomJoinStatus.Error,
-                -> RoomDiscoveryScreen(
-                    uiState = uiState,
-                    onServerUrlChanged = onServerUrlChanged,
-                    onLoadRooms = onLoadRooms,
-                    onManualRoomInputChanged = onManualRoomInputChanged,
-                    onRoomSelected = onRoomSelected,
-                    onDisplayNameChanged = onDisplayNameChanged,
-                    onAccessPinChanged = onAccessPinChanged,
-                    onCancelJoin = onCancelJoin,
-                    onSubmitJoin = onSubmitJoin,
-                    modifier = Modifier,
-                )
-            }
+            RoomDiscoveryScreen(
+                uiState = uiState,
+                onServerUrlChanged = onServerUrlChanged,
+                onLoadRooms = onLoadRooms,
+                onManualRoomInputChanged = onManualRoomInputChanged,
+                onRoomSelected = onRoomSelected,
+                onDisplayNameChanged = onDisplayNameChanged,
+                onAccessPinChanged = onAccessPinChanged,
+                onCancelJoin = onCancelJoin,
+                onSubmitJoin = onSubmitJoin,
+                modifier = Modifier,
+            )
         }
     }
 }
