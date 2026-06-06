@@ -13,13 +13,17 @@ import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.time.Clock
 import java.time.Instant
+import java.util.UUID
 
 class RoomDiscoveryStateHolder(
     private val repository: ActiveRoomRepository,
     private val clock: Clock = Clock.systemUTC(),
     initialServerUrl: String = "",
     private val cleartextAllowed: Boolean = false,
+    private val participantIdGenerator: () -> String = { UUID.randomUUID().toString() },
 ) {
+    private val participantIdsByRoom = mutableMapOf<ParticipantSessionKey, String>()
+
     var uiState by mutableStateOf(
         RoomDiscoveryUiState(
             serverUrl = initialServerUrl,
@@ -136,12 +140,17 @@ class RoomDiscoveryStateHolder(
         }
 
         uiState = if (errorMessage == null) {
+            val validatedServerBaseUrl = serverBaseUrl.getOrThrow().value
             uiState.copy(
                 join = uiState.join.copy(
                     status = RoomJoinStatus.ReadyToConnect(
                         RoomJoinRequest(
-                            serverBaseUrl = serverBaseUrl.getOrThrow().value,
+                            serverBaseUrl = validatedServerBaseUrl,
                             roomId = roomId,
+                            participantId = participantIdFor(
+                                serverBaseUrl = validatedServerBaseUrl,
+                                roomId = roomId,
+                            ),
                             displayName = displayName,
                             accessPin = accessPin.takeIf { it.isNotEmpty() },
                         ),
@@ -199,6 +208,18 @@ class RoomDiscoveryStateHolder(
             ActiveRoomDiscoveryFailure.ServerUnavailable -> "The server could not load active rooms right now."
             ActiveRoomDiscoveryFailure.MalformedResponse -> "The server returned an unsupported room list."
         }
+
+    private fun participantIdFor(
+        serverBaseUrl: String,
+        roomId: String,
+    ): String =
+        participantIdsByRoom.getOrPut(
+            ParticipantSessionKey(
+                serverBaseUrl = serverBaseUrl,
+                roomId = roomId,
+            ),
+            participantIdGenerator,
+        )
 }
 
 data class RoomDiscoveryUiState(
@@ -254,8 +275,14 @@ sealed interface RoomJoinStatus {
 data class RoomJoinRequest(
     val serverBaseUrl: String,
     val roomId: String,
+    val participantId: String,
     val displayName: String,
     val accessPin: String?,
+)
+
+private data class ParticipantSessionKey(
+    val serverBaseUrl: String,
+    val roomId: String,
 )
 
 private data class RoomInput(
