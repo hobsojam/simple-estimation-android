@@ -20,6 +20,7 @@ class RoomJoiningStateHolderTest : FunSpec({
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             initialServerUrl = "https://example.com",
+            participantIdGenerator = ParticipantIdSequence("participant-1"),
         )
 
         stateHolder.selectRoom(room)
@@ -34,6 +35,7 @@ class RoomJoiningStateHolderTest : FunSpec({
             RoomJoinRequest(
                 serverBaseUrl = "https://example.com",
                 roomId = "room-1",
+                participantId = "participant-1",
                 displayName = "Ada",
                 accessPin = "secret",
             ),
@@ -66,6 +68,7 @@ class RoomJoiningStateHolderTest : FunSpec({
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             initialServerUrl = "https://example.com/",
+            participantIdGenerator = ParticipantIdSequence("participant-1"),
         )
 
         stateHolder.updateManualRoomInput(" room-99 ")
@@ -76,6 +79,7 @@ class RoomJoiningStateHolderTest : FunSpec({
             RoomJoinRequest(
                 serverBaseUrl = "https://example.com",
                 roomId = "room-99",
+                participantId = "participant-1",
                 displayName = "Grace Hopper",
                 accessPin = null,
             ),
@@ -118,6 +122,7 @@ class RoomJoiningStateHolderTest : FunSpec({
             repository = FakeJoiningActiveRoomRepository(),
             initialServerUrl = "http://10.0.2.2:3000/",
             cleartextAllowed = true,
+            participantIdGenerator = ParticipantIdSequence("participant-1"),
         )
 
         stateHolder.updateManualRoomInput("room-99")
@@ -128,6 +133,7 @@ class RoomJoiningStateHolderTest : FunSpec({
             RoomJoinRequest(
                 serverBaseUrl = "http://10.0.2.2:3000",
                 roomId = "room-99",
+                participantId = "participant-1",
                 displayName = "Ada",
                 accessPin = null,
             ),
@@ -150,6 +156,7 @@ class RoomJoiningStateHolderTest : FunSpec({
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             initialServerUrl = "https://example.com",
+            participantIdGenerator = ParticipantIdSequence("participant-1"),
         )
         val protectedRoom = ActiveRoom(
             id = "protected-room",
@@ -170,6 +177,7 @@ class RoomJoiningStateHolderTest : FunSpec({
             RoomJoinRequest(
                 serverBaseUrl = "https://rooms.example.com",
                 roomId = "public-room",
+                participantId = "participant-1",
                 displayName = "Ada",
                 accessPin = null,
             ),
@@ -180,6 +188,7 @@ class RoomJoiningStateHolderTest : FunSpec({
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             initialServerUrl = "https://example.com",
+            participantIdGenerator = ParticipantIdSequence("participant-1"),
         )
         val protectedRoom = ActiveRoom(
             id = "protected-room",
@@ -200,6 +209,7 @@ class RoomJoiningStateHolderTest : FunSpec({
             RoomJoinRequest(
                 serverBaseUrl = "https://example.com",
                 roomId = "public-room",
+                participantId = "participant-1",
                 displayName = "Ada",
                 accessPin = null,
             ),
@@ -245,9 +255,103 @@ class RoomJoiningStateHolderTest : FunSpec({
             "Enter a display name before joining.",
         )
     }
+
+    test("reuses participant id for repeated joins to the same room in the current session") {
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "https://example.com",
+            participantIdGenerator = ParticipantIdSequence("participant-1", "participant-2"),
+        )
+
+        stateHolder.updateManualRoomInput("room-99")
+        stateHolder.updateDisplayName("Ada")
+        stateHolder.submitJoin()
+        val firstRequest = (stateHolder.uiState.join.status as RoomJoinStatus.ReadyToConnect).request
+
+        stateHolder.submitJoin()
+        val secondRequest = (stateHolder.uiState.join.status as RoomJoinStatus.ReadyToConnect).request
+
+        firstRequest.participantId shouldBe "participant-1"
+        secondRequest.participantId shouldBe "participant-1"
+    }
+
+    test("uses separate participant ids for separate rooms in the current session") {
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "https://example.com",
+            participantIdGenerator = ParticipantIdSequence("participant-1", "participant-2"),
+        )
+
+        stateHolder.updateDisplayName("Ada")
+        stateHolder.updateManualRoomInput("room-1")
+        stateHolder.submitJoin()
+        val firstRoomRequest = (stateHolder.uiState.join.status as RoomJoinStatus.ReadyToConnect).request
+
+        stateHolder.updateManualRoomInput("room-2")
+        stateHolder.submitJoin()
+        val secondRoomRequest = (stateHolder.uiState.join.status as RoomJoinStatus.ReadyToConnect).request
+
+        firstRoomRequest.participantId shouldBe "participant-1"
+        secondRoomRequest.participantId shouldBe "participant-2"
+    }
+
+    test("resets participant ids when a new app session state holder is created") {
+        val firstSession = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "https://example.com",
+            participantIdGenerator = ParticipantIdSequence("participant-1"),
+        )
+        val secondSession = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "https://example.com",
+            participantIdGenerator = ParticipantIdSequence("participant-2"),
+        )
+
+        firstSession.updateManualRoomInput("room-99")
+        firstSession.updateDisplayName("Ada")
+        firstSession.submitJoin()
+        secondSession.updateManualRoomInput("room-99")
+        secondSession.updateDisplayName("Ada")
+        secondSession.submitJoin()
+
+        val firstRequest = (firstSession.uiState.join.status as RoomJoinStatus.ReadyToConnect).request
+        val secondRequest = (secondSession.uiState.join.status as RoomJoinStatus.ReadyToConnect).request
+        firstRequest.participantId shouldBe "participant-1"
+        secondRequest.participantId shouldBe "participant-2"
+    }
+
+    test("keeps display name only in the current app session and does not carry access pins forward") {
+        val currentSession = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "https://example.com",
+        )
+
+        currentSession.updateDisplayName("Ada")
+        currentSession.updateAccessPin("secret")
+        currentSession.cancelJoin()
+
+        currentSession.uiState.join.displayName shouldBe "Ada"
+        currentSession.uiState.join.accessPin shouldBe ""
+
+        val nextSession = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            initialServerUrl = "https://example.com",
+        )
+
+        nextSession.uiState.join.displayName shouldBe ""
+        nextSession.uiState.join.accessPin shouldBe ""
+    }
 })
 
 private class FakeJoiningActiveRoomRepository : ActiveRoomRepository {
     override suspend fun loadActiveRooms(serverBaseUrl: String): ActiveRoomDiscoveryResult =
         ActiveRoomDiscoveryResult.Success(emptyList())
+}
+
+private class ParticipantIdSequence(
+    private vararg val values: String,
+) : () -> String {
+    private var nextIndex = 0
+
+    override fun invoke(): String = values[nextIndex++]
 }

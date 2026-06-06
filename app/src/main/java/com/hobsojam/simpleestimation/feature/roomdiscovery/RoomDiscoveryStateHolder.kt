@@ -13,13 +13,17 @@ import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.time.Clock
 import java.time.Instant
+import java.util.UUID
 
 class RoomDiscoveryStateHolder(
     private val repository: ActiveRoomRepository,
     private val clock: Clock = Clock.systemUTC(),
     initialServerUrl: String = "",
     private val cleartextAllowed: Boolean = false,
+    private val participantIdGenerator: () -> String = { UUID.randomUUID().toString() },
 ) {
+    private val participantSessionStore = ParticipantSessionStore(participantIdGenerator)
+
     var uiState by mutableStateOf(
         RoomDiscoveryUiState(
             serverUrl = initialServerUrl,
@@ -136,12 +140,17 @@ class RoomDiscoveryStateHolder(
         }
 
         uiState = if (errorMessage == null) {
+            val validatedServerBaseUrl = serverBaseUrl.getOrThrow().value
             uiState.copy(
                 join = uiState.join.copy(
                     status = RoomJoinStatus.ReadyToConnect(
                         RoomJoinRequest(
-                            serverBaseUrl = serverBaseUrl.getOrThrow().value,
+                            serverBaseUrl = validatedServerBaseUrl,
                             roomId = roomId,
+                            participantId = participantSessionStore.participantIdFor(
+                                serverBaseUrl = validatedServerBaseUrl,
+                                roomId = roomId,
+                            ),
                             displayName = displayName,
                             accessPin = accessPin.takeIf { it.isNotEmpty() },
                         ),
@@ -254,9 +263,33 @@ sealed interface RoomJoinStatus {
 data class RoomJoinRequest(
     val serverBaseUrl: String,
     val roomId: String,
+    val participantId: String,
     val displayName: String,
     val accessPin: String?,
 )
+
+private data class ParticipantSessionKey(
+    val serverBaseUrl: String,
+    val roomId: String,
+)
+
+private class ParticipantSessionStore(
+    private val participantIdGenerator: () -> String,
+) {
+    private val participantIdsByRoom = mutableMapOf<ParticipantSessionKey, String>()
+
+    fun participantIdFor(
+        serverBaseUrl: String,
+        roomId: String,
+    ): String =
+        participantIdsByRoom.getOrPut(
+            ParticipantSessionKey(
+                serverBaseUrl = serverBaseUrl,
+                roomId = roomId,
+            ),
+            participantIdGenerator,
+        )
+}
 
 private data class RoomInput(
     val roomId: String,
