@@ -211,14 +211,6 @@ class RoomDiscoveryStateHolder(
         )
     }
 
-    private fun Throwable.toJoinErrorMessage(): String = when (this) {
-        is ServerConfigParseException ->
-            "The server returned an unsupported configuration. Update Simple Estimation or try another server."
-        else ->
-            message?.takeIf { it.isNotBlank() }
-                ?: "Could not check server compatibility. Check the server URL and try again."
-    }
-
     suspend fun loadActiveRooms() {
         val previousRooms = uiState.status.roomsOrNull()
         uiState = uiState.copy(status = RoomDiscoveryStatus.Loading(previousRooms = previousRooms))
@@ -248,23 +240,32 @@ class RoomDiscoveryStateHolder(
         }
     }
 
-    private fun RoomDiscoveryStatus.roomsOrNull(): List<ActiveRoom>? =
-        when (this) {
-            is RoomDiscoveryStatus.Loaded -> rooms
-            is RoomDiscoveryStatus.Loading -> previousRooms
-            is RoomDiscoveryStatus.Error -> staleRooms
-            RoomDiscoveryStatus.Idle -> null
-            is RoomDiscoveryStatus.Empty -> null
-        }
+}
 
-    private fun ActiveRoomDiscoveryFailure.toUserMessage(): String =
-        when (this) {
-            ActiveRoomDiscoveryFailure.InvalidServerUrl -> "Enter a valid server URL."
-            ActiveRoomDiscoveryFailure.InsecureServerUrl -> "Use an HTTPS server URL for this build."
-            ActiveRoomDiscoveryFailure.NetworkUnavailable -> "Could not reach the server. Check the URL and connection."
-            ActiveRoomDiscoveryFailure.ServerUnavailable -> "The server could not load active rooms right now."
-            ActiveRoomDiscoveryFailure.MalformedResponse -> "The server returned an unsupported room list."
-        }
+private fun RoomDiscoveryStatus.roomsOrNull(): List<ActiveRoom>? =
+    when (this) {
+        is RoomDiscoveryStatus.Loaded -> rooms
+        is RoomDiscoveryStatus.Loading -> previousRooms
+        is RoomDiscoveryStatus.Error -> staleRooms
+        RoomDiscoveryStatus.Idle -> null
+        is RoomDiscoveryStatus.Empty -> null
+    }
+
+private fun ActiveRoomDiscoveryFailure.toUserMessage(): String =
+    when (this) {
+        ActiveRoomDiscoveryFailure.InvalidServerUrl -> "Enter a valid server URL."
+        ActiveRoomDiscoveryFailure.InsecureServerUrl -> "Use an HTTPS server URL for this build."
+        ActiveRoomDiscoveryFailure.NetworkUnavailable -> "Could not reach the server. Check the URL and connection."
+        ActiveRoomDiscoveryFailure.ServerUnavailable -> "The server could not load active rooms right now."
+        ActiveRoomDiscoveryFailure.MalformedResponse -> "The server returned an unsupported room list."
+    }
+
+private fun Throwable.toJoinErrorMessage(): String = when (this) {
+    is ServerConfigParseException ->
+        "The server returned an unsupported configuration. Update Simple Estimation or try another server."
+    else ->
+        message?.takeIf { it.isNotBlank() }
+            ?: "Could not check server compatibility. Check the server URL and try again."
 }
 
 data class RoomDiscoveryUiState(
