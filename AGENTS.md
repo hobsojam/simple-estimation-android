@@ -354,6 +354,22 @@ project exists.
 - Do not amend published shared-branch commits without user confirmation.
 - Do not add a co-author trailer unless the user explicitly requests one.
 
+### Codex Cloud Publishing
+
+When Codex Cloud needs to publish completed work, use this sequence:
+
+```bash
+git status
+git add <files>
+git commit -m "<message>"
+git push -u origin HEAD
+gh pr create --base main --head "$(git branch --show-current)" --title "<title>" --body "<body>"
+```
+
+Use `git push -u origin HEAD` for the first push from a Codex-created branch so
+the branch tracks `origin/<branch-name>`. Do not rely on an unqualified first
+`git push`.
+
 ## Local Windows Sandbox Notes
 
 In the Codex desktop environment, PowerShell and Git commands may
