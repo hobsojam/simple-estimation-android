@@ -212,8 +212,11 @@ class RoomDiscoveryStateHolder(
     }
 
     private fun Throwable.toJoinErrorMessage(): String = when (this) {
-        is ServerConfigParseException -> "The server returned an unsupported configuration. Update Simple Estimation or try another server."
-        else -> message?.takeIf { it.isNotBlank() } ?: "Could not check server compatibility. Check the server URL and try again."
+        is ServerConfigParseException ->
+            "The server returned an unsupported configuration. Update Simple Estimation or try another server."
+        else ->
+            message?.takeIf { it.isNotBlank() }
+                ?: "Could not check server compatibility. Check the server URL and try again."
     }
 
     suspend fun loadActiveRooms() {
