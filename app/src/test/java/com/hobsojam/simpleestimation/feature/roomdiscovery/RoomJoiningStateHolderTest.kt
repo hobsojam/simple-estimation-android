@@ -607,7 +607,7 @@ class RoomJoiningStateHolderTest : FunSpec({
         val secondResult = Result.success(ServerConfig(demoMode = false, protocolVersion = 1))
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
-            configClient = ControllableServerConfigClient(firstDeferred, secondResult),
+            configClient = ControllableServerConfigClient(firstDeferred, listOf(secondResult)),
             initialServerUrl = "https://example.com",
             participantIdGenerator = ParticipantIdSequence("participant-1"),
         )
@@ -670,7 +670,7 @@ private class FakeServerConfigClient(
 
 private class ControllableServerConfigClient(
     private val firstDeferred: CompletableDeferred<Result<ServerConfig>>,
-    private vararg val subsequentResults: Result<ServerConfig>,
+    private val subsequentResults: List<Result<ServerConfig>> = emptyList(),
 ) : ServerConfigClient {
     private var callCount = 0
 
