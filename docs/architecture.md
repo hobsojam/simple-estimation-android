@@ -120,6 +120,30 @@ The mapper is where the app handles:
 
 Do not let composables or feature screens inspect raw JSON or protocol DTOs.
 
+## Future Facilitator and Administration Architecture Gate
+
+The current architecture is participant-only. Room facilitation and
+administration must remain out of the MVP command send paths until the server
+contract defines the required commands, state updates, authorization model, and
+error cases.
+
+When a later phase adds facilitator capabilities, revisit this architecture
+document before implementation and record the durable decisions for:
+
+- explicit participant and facilitator state models instead of UI-only role
+  flags
+- separate participant actions and administration commands in the domain layer
+- separate protocol DTOs and mappers for administration messages
+- user-safe authorization-failure mapping that does not retry denied commands as
+  transport failures
+- credential/session storage rules for any facilitator authentication material
+- test seams for successful facilitator workflows, denied commands, malformed
+  administration payloads, and participant clients without facilitator controls
+
+The server remains authoritative for role and room state. Android UI state may
+enable facilitator controls only from a validated, authenticated, and authorized
+domain state; it must not infer facilitator permissions from local UI navigation
+or unsanitized room content.
 
 ## Room Discovery
 

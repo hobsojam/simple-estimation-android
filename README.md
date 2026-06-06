@@ -61,6 +61,37 @@ The initial Android client will not:
 - Persist access PINs or facilitator PINs
 - Replace the web application for session administration
 
+### Future Facilitation and Administration Scope Gate
+
+Facilitator and room-administration capabilities are intentionally outside the
+participant-only MVP. They should be planned as a later product phase, not added
+incrementally to the participant flows.
+
+Potential later-phase capabilities include:
+
+- Create, configure, start, reset, and close estimation rooms
+- Manage backlog items, estimation modes, participant access, and room settings
+- Reveal votes, accept estimates, select items, reset rounds, and control timers
+- Keep facilitator authorization and controls separate from participant behavior
+
+The Android implementation should not begin until all of these readiness gates
+are satisfied:
+
+- Product requirements and supported facilitator workflows are documented here.
+- The server API and WebSocket contract documentation covers every required
+  administration command, response, state update, and authorization failure.
+- Facilitator authentication, authorization, credential handling, and session
+  lifetime have been designed and reviewed.
+- Android architecture notes describe the participant/facilitator state
+  boundary before facilitator screens or command send paths are added.
+- Automated tests are planned for successful facilitator workflows, denied
+  administration commands, malformed administration payloads, and participant
+  clients that must not expose facilitator controls.
+
+Until those gates are met, the Android app must not add Android-only protocol
+extensions, persist facilitator secrets, log room-administration payloads, or
+send facilitator-only commands.
+
 ## Server Contract
 
 The Android client uses the same HTTP and WebSocket contract as the web client:
