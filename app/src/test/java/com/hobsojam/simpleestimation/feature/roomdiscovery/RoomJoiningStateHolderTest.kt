@@ -372,7 +372,9 @@ class RoomJoiningStateHolderTest : FunSpec({
     }
 
     test("checks compatible server config before a manual room join connects") {
-        val configClient = FakeServerConfigClient(listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 1))))
+        val configClient = FakeServerConfigClient(
+            listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 1))),
+        )
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             configClient = configClient,
@@ -398,7 +400,9 @@ class RoomJoiningStateHolderTest : FunSpec({
     }
 
     test("checks compatible server config before a selected active room join connects") {
-        val configClient = FakeServerConfigClient(listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 1))))
+        val configClient = FakeServerConfigClient(
+            listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 1))),
+        )
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             configClient = configClient,
@@ -425,7 +429,9 @@ class RoomJoiningStateHolderTest : FunSpec({
     }
 
     test("checks compatible server config before a room link join connects") {
-        val configClient = FakeServerConfigClient(listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 1))))
+        val configClient = FakeServerConfigClient(
+            listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 1))),
+        )
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             configClient = configClient,
@@ -444,7 +450,9 @@ class RoomJoiningStateHolderTest : FunSpec({
     }
 
     test("blocks unsupported protocol versions and preserves retry input") {
-        val configClient = FakeServerConfigClient(listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 2))))
+        val configClient = FakeServerConfigClient(
+            listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 2))),
+        )
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             configClient = configClient,
@@ -470,7 +478,9 @@ class RoomJoiningStateHolderTest : FunSpec({
     }
 
     test("surfaces demo mode before connecting") {
-        val configClient = FakeServerConfigClient(listOf(Result.success(ServerConfig(demoMode = true, protocolVersion = 1))))
+        val configClient = FakeServerConfigClient(
+            listOf(Result.success(ServerConfig(demoMode = true, protocolVersion = 1))),
+        )
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             configClient = configClient,
@@ -514,7 +524,9 @@ class RoomJoiningStateHolderTest : FunSpec({
     }
 
     test("reports malformed config responses without connecting") {
-        val configClient = FakeServerConfigClient(listOf(Result.failure(ServerConfigParseException("missing protocol"))))
+        val configClient = FakeServerConfigClient(
+            listOf(Result.failure(ServerConfigParseException("missing protocol"))),
+        )
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             configClient = configClient,
@@ -531,7 +543,9 @@ class RoomJoiningStateHolderTest : FunSpec({
     }
 
     test("does not fetch config when release cleartext validation fails") {
-        val configClient = FakeServerConfigClient(listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 1))))
+        val configClient = FakeServerConfigClient(
+            listOf(Result.success(ServerConfig(demoMode = false, protocolVersion = 1))),
+        )
         val stateHolder = RoomDiscoveryStateHolder(
             repository = FakeJoiningActiveRoomRepository(),
             configClient = configClient,
