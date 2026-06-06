@@ -227,6 +227,7 @@ code or build-configuration changes:
 
 ```powershell
 .\gradlew.bat ktlintCheck
+.\gradlew.bat detekt
 .\gradlew.bat test
 .\gradlew.bat lint
 .\gradlew.bat assembleDebug
@@ -296,6 +297,9 @@ flows that require Android platform integration.
   Android Studio settings.
 - Run `.\gradlew.bat ktlintCheck` before pushing and in CI. Use
   `.\gradlew.bat ktlintFormat` to apply automatic formatting fixes.
+- Run `.\gradlew.bat detekt` before pushing and in CI. Detekt enforces
+  additional rules such as `MaxLineLength` (120 characters). Fix violations by
+  reformatting — do not suppress rules unless the line cannot be shortened.
 - The Google Android Kotlin Style Guide remains authoritative where `ktlint`
   does not enforce a rule. If tool defaults conflict with the guide, update the
   tool configuration rather than adopting the conflicting defaults.
