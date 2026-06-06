@@ -51,12 +51,14 @@ class SimpleEstimationAppTest {
                     uiState = uiState.copy(
                         join = uiState.join.copy(
                             status = RoomJoinStatus.ReadyToConnect(
-                                RoomJoinRequest(
+                                request = RoomJoinRequest(
                                     serverBaseUrl = "https://example.com",
                                     roomId = "room-99",
+                                    participantId = "participant-1",
                                     displayName = "Avery",
                                     accessPin = null,
                                 ),
+                                demoMode = true,
                             ),
                         ),
                     )
@@ -67,6 +69,8 @@ class SimpleEstimationAppTest {
         composeRule.onNodeWithText("Join room").performClick()
 
         composeRule.onNodeWithText("Active rooms").assertIsDisplayed()
+        composeRule.onNodeWithText("Demo mode is enabled on this server. Room data may reset without notice.")
+            .assertIsDisplayed()
         composeRule.onNodeWithText("Ready to connect as Avery.").assertIsDisplayed()
     }
 }

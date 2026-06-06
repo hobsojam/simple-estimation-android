@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.hobsojam.simpleestimation.data.room.HttpActiveRoomRepository
+import com.hobsojam.simpleestimation.data.server.JavaNetServerConfigClient
 import com.hobsojam.simpleestimation.domain.room.ActiveRoom
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryScreen
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryStatus
@@ -22,6 +23,7 @@ class MainActivity : ComponentActivity() {
     private val roomDiscoveryViewModel: RoomDiscoveryViewModel by viewModels {
         RoomDiscoveryViewModel.Factory(
             repositoryFactory = { HttpActiveRoomRepository() },
+            configClientFactory = { JavaNetServerConfigClient() },
         )
     }
 

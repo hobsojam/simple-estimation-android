@@ -97,16 +97,30 @@ internal fun RoomJoinPanel(
 private fun RoomJoinStatusMessage(status: RoomJoinStatus) {
     when (status) {
         RoomJoinStatus.Idle -> Unit
+        RoomJoinStatus.CheckingCompatibility -> Text(
+            text = "Checking server compatibility…",
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.bodyLarge,
+        )
         is RoomJoinStatus.Error -> Text(
             text = status.message,
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodyLarge,
         )
-        is RoomJoinStatus.ReadyToConnect -> Text(
-            text = "Ready to connect as ${status.request.displayName}.",
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        is RoomJoinStatus.ReadyToConnect -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (status.demoMode) {
+                Text(
+                    text = "Demo mode is enabled on this server. Room data may reset without notice.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+            Text(
+                text = "Ready to connect as ${status.request.displayName}.",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
     }
 }
 
