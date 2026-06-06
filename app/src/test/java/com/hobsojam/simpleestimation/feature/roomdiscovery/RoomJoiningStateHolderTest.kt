@@ -11,6 +11,9 @@ import com.hobsojam.simpleestimation.domain.server.ServerBaseUrl
 import com.hobsojam.simpleestimation.domain.server.ServerConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class RoomJoiningStateHolderTest : FunSpec({
     test("selects an active room and requires an access PIN when the room is protected") {
@@ -563,6 +566,72 @@ class RoomJoiningStateHolderTest : FunSpec({
         )
     }
 
+    test("ignores stale config response when cancel is called while in flight") {
+        val deferred = CompletableDeferred<Result<ServerConfig>>()
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            configClient = ControllableServerConfigClient(deferred),
+            initialServerUrl = "https://example.com",
+        )
+        stateHolder.updateManualRoomInput("room-99")
+        stateHolder.updateDisplayName("Ada")
+
+        val job = launch(Dispatchers.Unconfined) { stateHolder.submitJoin() }
+        stateHolder.cancelJoin()
+        deferred.complete(Result.success(ServerConfig(demoMode = false, protocolVersion = 1)))
+        job.join()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.Idle
+    }
+
+    test("ignores stale config response when server url changes while in flight") {
+        val deferred = CompletableDeferred<Result<ServerConfig>>()
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            configClient = ControllableServerConfigClient(deferred),
+            initialServerUrl = "https://example.com",
+        )
+        stateHolder.updateManualRoomInput("room-99")
+        stateHolder.updateDisplayName("Ada")
+
+        val job = launch(Dispatchers.Unconfined) { stateHolder.submitJoin() }
+        stateHolder.updateServerUrl("https://other.example.com")
+        deferred.complete(Result.success(ServerConfig(demoMode = false, protocolVersion = 1)))
+        job.join()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.Idle
+    }
+
+    test("ignores first stale config response when join is submitted again while in flight") {
+        val firstDeferred = CompletableDeferred<Result<ServerConfig>>()
+        val secondResult = Result.success(ServerConfig(demoMode = false, protocolVersion = 1))
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            configClient = ControllableServerConfigClient(firstDeferred, listOf(secondResult)),
+            initialServerUrl = "https://example.com",
+            participantIdGenerator = ParticipantIdSequence("participant-1"),
+        )
+        stateHolder.updateManualRoomInput("room-99")
+        stateHolder.updateDisplayName("Ada")
+
+        val firstJob = launch(Dispatchers.Unconfined) { stateHolder.submitJoin() }
+        val secondJob = launch(Dispatchers.Unconfined) { stateHolder.submitJoin() }
+        firstDeferred.complete(Result.success(ServerConfig(demoMode = false, protocolVersion = 1)))
+        firstJob.join()
+        secondJob.join()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.ReadyToConnect(
+            request = RoomJoinRequest(
+                serverBaseUrl = "https://example.com",
+                roomId = "room-99",
+                participantId = "participant-1",
+                displayName = "Ada",
+                accessPin = null,
+            ),
+            demoMode = false,
+        )
+    }
+
 })
 
 private fun compatibleConfigClient(): ServerConfigClient = FakeServerConfigClient(
@@ -597,4 +666,14 @@ private class FakeServerConfigClient(
         requestedUrls += baseUrl
         return results[requestCount++]
     }
+}
+
+private class ControllableServerConfigClient(
+    private val firstDeferred: CompletableDeferred<Result<ServerConfig>>,
+    private val subsequentResults: List<Result<ServerConfig>> = emptyList(),
+) : ServerConfigClient {
+    private var callCount = 0
+
+    override suspend fun fetchConfig(baseUrl: ServerBaseUrl): Result<ServerConfig> =
+        if (callCount++ == 0) firstDeferred.await() else subsequentResults[callCount - 2]
 }

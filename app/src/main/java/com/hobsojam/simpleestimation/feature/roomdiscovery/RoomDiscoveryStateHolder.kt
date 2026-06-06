@@ -29,6 +29,7 @@ class RoomDiscoveryStateHolder(
     private val participantIdGenerator: () -> String = { UUID.randomUUID().toString() },
 ) {
     private val participantSessionStore = ParticipantSessionStore(participantIdGenerator)
+    private var joinRequestToken = 0
 
     var uiState by mutableStateOf(
         RoomDiscoveryUiState(
@@ -40,6 +41,7 @@ class RoomDiscoveryStateHolder(
         private set
 
     fun updateServerUrl(serverUrl: String) {
+        joinRequestToken++
         uiState = uiState.copy(
             serverUrl = serverUrl,
             join = uiState.join.copy(accessPin = "", status = RoomJoinStatus.Idle),
@@ -47,6 +49,7 @@ class RoomDiscoveryStateHolder(
     }
 
     fun updateManualRoomInput(value: String) {
+        joinRequestToken++
         val input = parseRoomInput(value) ?: RoomInput(roomId = value, serverBaseUrl = null)
         uiState = uiState.copy(
             serverUrl = input.serverBaseUrl ?: uiState.serverUrl,
@@ -63,6 +66,7 @@ class RoomDiscoveryStateHolder(
     }
 
     fun openRoomLink(value: String) {
+        joinRequestToken++
         val input = parseRoomInput(value)
         uiState = if (input == null) {
             uiState.copy(
@@ -88,6 +92,7 @@ class RoomDiscoveryStateHolder(
     }
 
     fun selectRoom(room: ActiveRoom) {
+        joinRequestToken++
         uiState = uiState.copy(
             join = uiState.join.copy(
                 mode = RoomJoinMode.JoiningRoom(
@@ -120,6 +125,7 @@ class RoomDiscoveryStateHolder(
     }
 
     fun cancelJoin() {
+        joinRequestToken++
         uiState = uiState.copy(join = RoomJoinUiState(displayName = uiState.join.displayName))
     }
 
@@ -130,10 +136,12 @@ class RoomDiscoveryStateHolder(
             return
         }
         val validInput = validation as JoinValidationResult.Valid
+        val token = ++joinRequestToken
         uiState = uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.CheckingCompatibility))
 
         configClient.fetchConfig(validInput.serverBaseUrl).fold(
             onSuccess = { config ->
+                if (joinRequestToken != token) return@fold
                 when (val compatibility = ProtocolCompatibilityChecker.check(config)) {
                     is ProtocolCompatibility.Compatible -> markReadyToConnect(
                         validInput = validInput,
@@ -147,6 +155,7 @@ class RoomDiscoveryStateHolder(
                 }
             },
             onFailure = { exception ->
+                if (joinRequestToken != token) return@fold
                 uiState = uiState.copy(
                     join = uiState.join.copy(status = RoomJoinStatus.Error(exception.toJoinErrorMessage())),
                 )
