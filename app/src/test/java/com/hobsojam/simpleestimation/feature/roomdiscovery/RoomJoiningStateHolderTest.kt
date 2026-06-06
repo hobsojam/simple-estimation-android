@@ -632,6 +632,27 @@ class RoomJoiningStateHolderTest : FunSpec({
         )
     }
 
+    test("ignores stale config response when a subsequent invalid join is submitted while in flight") {
+        val deferred = CompletableDeferred<Result<ServerConfig>>()
+        val stateHolder = RoomDiscoveryStateHolder(
+            repository = FakeJoiningActiveRoomRepository(),
+            configClient = ControllableServerConfigClient(deferred),
+            initialServerUrl = "https://example.com",
+        )
+        stateHolder.updateManualRoomInput("room-99")
+        stateHolder.updateDisplayName("Ada")
+
+        val firstJob = launch(Dispatchers.Unconfined) { stateHolder.submitJoin() }
+        stateHolder.updateDisplayName("")
+        stateHolder.submitJoin()
+        deferred.complete(Result.success(ServerConfig(demoMode = false, protocolVersion = 1)))
+        firstJob.join()
+
+        stateHolder.uiState.join.status shouldBe RoomJoinStatus.Error(
+            "Enter a display name before joining.",
+        )
+    }
+
 })
 
 private fun compatibleConfigClient(): ServerConfigClient = FakeServerConfigClient(
