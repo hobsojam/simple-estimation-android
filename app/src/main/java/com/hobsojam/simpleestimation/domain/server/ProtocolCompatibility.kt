@@ -1,14 +1,9 @@
 package com.hobsojam.simpleestimation.domain.server
 
 sealed interface ProtocolCompatibility {
-    data class Compatible(
-        val config: ServerConfig,
-    ) : ProtocolCompatibility
+    data class Compatible(val config: ServerConfig) : ProtocolCompatibility
 
-    data class Unsupported(
-        val protocolVersion: Int,
-        val message: String,
-    ) : ProtocolCompatibility
+    data class Unsupported(val protocolVersion: Int, val message: String) : ProtocolCompatibility
 }
 
 object ProtocolCompatibilityChecker {

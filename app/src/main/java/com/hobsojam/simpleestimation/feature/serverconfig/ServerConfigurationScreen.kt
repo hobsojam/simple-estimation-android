@@ -102,7 +102,8 @@ private fun ServerConfigurationStatusMessage(
         is ServerConfigurationStatus.ReadyToJoin -> {
             if (status.demoMode) {
                 Text(
-                    text = "Demo mode is enabled on this server. Rooms and activity may be temporary.",
+                    text = "Demo mode is enabled on this server. " +
+                        "Rooms and activity may be temporary.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.tertiary,
                     modifier = modifier,
@@ -132,8 +133,7 @@ private fun ServerConfigurationStatusMessage(
     }
 }
 
-private fun buttonText(status: ServerConfigurationStatus): String =
-    when (status) {
-        ServerConfigurationStatus.Checking -> "Checking…"
-        else -> "Check server and continue"
-    }
+private fun buttonText(status: ServerConfigurationStatus): String = when (status) {
+    ServerConfigurationStatus.Checking -> "Checking…"
+    else -> "Check server and continue"
+}

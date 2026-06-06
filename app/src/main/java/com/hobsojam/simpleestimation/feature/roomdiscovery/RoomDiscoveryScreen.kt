@@ -119,14 +119,13 @@ private fun RoomDiscoveryContent(
 
 private const val REFRESH_ROOM_LIST_BUTTON_TEXT = "Refresh room list"
 
-private fun loadButtonText(status: RoomDiscoveryStatus): String =
-    when (status) {
-        RoomDiscoveryStatus.Idle -> "Load active rooms"
-        is RoomDiscoveryStatus.Loading -> "Loading rooms"
-        is RoomDiscoveryStatus.Empty -> REFRESH_ROOM_LIST_BUTTON_TEXT
-        is RoomDiscoveryStatus.Error -> REFRESH_ROOM_LIST_BUTTON_TEXT
-        is RoomDiscoveryStatus.Loaded -> REFRESH_ROOM_LIST_BUTTON_TEXT
-    }
+private fun loadButtonText(status: RoomDiscoveryStatus): String = when (status) {
+    RoomDiscoveryStatus.Idle -> "Load active rooms"
+    is RoomDiscoveryStatus.Loading -> "Loading rooms"
+    is RoomDiscoveryStatus.Empty -> REFRESH_ROOM_LIST_BUTTON_TEXT
+    is RoomDiscoveryStatus.Error -> REFRESH_ROOM_LIST_BUTTON_TEXT
+    is RoomDiscoveryStatus.Loaded -> REFRESH_ROOM_LIST_BUTTON_TEXT
+}
 
 @Composable
 private fun RoomDiscoveryStatusContent(
@@ -153,10 +152,7 @@ private fun RoomDiscoveryStatusContent(
 }
 
 @Composable
-private fun LoadingRooms(
-    previousRooms: List<ActiveRoom>?,
-    onRoomSelected: (ActiveRoom) -> Unit,
-) {
+private fun LoadingRooms(previousRooms: List<ActiveRoom>?, onRoomSelected: (ActiveRoom) -> Unit) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -175,10 +171,7 @@ private fun LoadingRooms(
 }
 
 @Composable
-private fun ErrorRooms(
-    status: RoomDiscoveryStatus.Error,
-    onRoomSelected: (ActiveRoom) -> Unit,
-) {
+private fun ErrorRooms(status: RoomDiscoveryStatus.Error, onRoomSelected: (ActiveRoom) -> Unit) {
     Text(
         text = status.message,
         color = MaterialTheme.colorScheme.error,
@@ -216,10 +209,7 @@ private fun RoomList(
 }
 
 @Composable
-private fun RoomCard(
-    room: ActiveRoom,
-    onRoomSelected: (ActiveRoom) -> Unit,
-) {
+private fun RoomCard(room: ActiveRoom, onRoomSelected: (ActiveRoom) -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth(),

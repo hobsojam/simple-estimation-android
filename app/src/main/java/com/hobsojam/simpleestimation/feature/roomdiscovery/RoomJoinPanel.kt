@@ -107,10 +107,13 @@ private fun RoomJoinStatusMessage(status: RoomJoinStatus) {
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodyLarge,
         )
-        is RoomJoinStatus.ReadyToConnect -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        is RoomJoinStatus.ReadyToConnect -> Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             if (status.demoMode) {
                 Text(
-                    text = "Demo mode is enabled on this server. Room data may reset without notice.",
+                    text = "Demo mode is enabled on this server. " +
+                        "Room data may reset without notice.",
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyLarge,
                 )

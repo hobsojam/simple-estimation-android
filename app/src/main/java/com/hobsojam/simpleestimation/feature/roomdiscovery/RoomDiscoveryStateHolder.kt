@@ -133,11 +133,15 @@ class RoomDiscoveryStateHolder(
         val token = ++joinRequestToken
         val validation = validateJoinInput()
         if (validation is JoinValidationResult.Invalid) {
-            uiState = uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.Error(validation.message)))
+            uiState =
+                uiState.copy(
+                    join = uiState.join.copy(status = RoomJoinStatus.Error(validation.message)),
+                )
             return
         }
         val validInput = validation as JoinValidationResult.Valid
-        uiState = uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.CheckingCompatibility))
+        uiState =
+            uiState.copy(join = uiState.join.copy(status = RoomJoinStatus.CheckingCompatibility))
 
         configClient.fetchConfig(validInput.serverBaseUrl).fold(
             onSuccess = { config ->
@@ -149,7 +153,9 @@ class RoomDiscoveryStateHolder(
                     )
                     is ProtocolCompatibility.Unsupported -> {
                         uiState = uiState.copy(
-                            join = uiState.join.copy(status = RoomJoinStatus.Error(compatibility.message)),
+                            join = uiState.join.copy(
+                                status = RoomJoinStatus.Error(compatibility.message),
+                            ),
                         )
                     }
                 }
@@ -157,7 +163,9 @@ class RoomDiscoveryStateHolder(
             onFailure = { exception ->
                 if (joinRequestToken != token) return@fold
                 uiState = uiState.copy(
-                    join = uiState.join.copy(status = RoomJoinStatus.Error(exception.toJoinErrorMessage())),
+                    join = uiState.join.copy(
+                        status = RoomJoinStatus.Error(exception.toJoinErrorMessage()),
+                    ),
                 )
             },
         )
@@ -172,12 +180,16 @@ class RoomDiscoveryStateHolder(
         val serverBaseUrl = ServerBaseUrl.parse(serverUrl, cleartextAllowed)
         val errorMessage = when {
             serverUrl.isEmpty() -> "Enter a server URL before joining."
-            serverBaseUrl.isFailure -> serverBaseUrl.exceptionOrNull()?.message ?: "Enter a valid server URL."
-            roomId.isEmpty() || roomId.length > MAX_SHARED_TEXT_LENGTH || roomId.any(Char::isWhitespace) -> {
+            serverBaseUrl.isFailure -> serverBaseUrl.exceptionOrNull()?.message
+                ?: "Enter a valid server URL."
+            roomId.isEmpty() ||
+                roomId.length > MAX_SHARED_TEXT_LENGTH ||
+                roomId.any(Char::isWhitespace) -> {
                 INVALID_ROOM_LINK_MESSAGE
             }
             displayName.isEmpty() -> "Enter a display name before joining."
-            displayName.length > MAX_SHARED_TEXT_LENGTH -> "Display name must be 200 characters or fewer."
+            displayName.length > MAX_SHARED_TEXT_LENGTH ->
+                "Display name must be 200 characters or fewer."
             joiningRoom?.accessPinRequired == true && accessPin.isEmpty() -> {
                 "Enter the room access PIN to continue."
             }
@@ -196,10 +208,7 @@ class RoomDiscoveryStateHolder(
         }
     }
 
-    private fun markReadyToConnect(
-        validInput: JoinValidationResult.Valid,
-        demoMode: Boolean,
-    ) {
+    private fun markReadyToConnect(validInput: JoinValidationResult.Valid, demoMode: Boolean) {
         val validatedServerBaseUrl = validInput.serverBaseUrl.value
         uiState = uiState.copy(
             join = uiState.join.copy(
@@ -248,26 +257,25 @@ class RoomDiscoveryStateHolder(
             )
         }
     }
-
 }
 
-private fun RoomDiscoveryStatus.roomsOrNull(): List<ActiveRoom>? =
-    when (this) {
-        is RoomDiscoveryStatus.Loaded -> rooms
-        is RoomDiscoveryStatus.Loading -> previousRooms
-        is RoomDiscoveryStatus.Error -> staleRooms
-        RoomDiscoveryStatus.Idle -> null
-        is RoomDiscoveryStatus.Empty -> null
-    }
+private fun RoomDiscoveryStatus.roomsOrNull(): List<ActiveRoom>? = when (this) {
+    is RoomDiscoveryStatus.Loaded -> rooms
+    is RoomDiscoveryStatus.Loading -> previousRooms
+    is RoomDiscoveryStatus.Error -> staleRooms
+    RoomDiscoveryStatus.Idle -> null
+    is RoomDiscoveryStatus.Empty -> null
+}
 
-private fun ActiveRoomDiscoveryFailure.toUserMessage(): String =
-    when (this) {
-        ActiveRoomDiscoveryFailure.InvalidServerUrl -> "Enter a valid server URL."
-        ActiveRoomDiscoveryFailure.InsecureServerUrl -> "Use an HTTPS server URL for this build."
-        ActiveRoomDiscoveryFailure.NetworkUnavailable -> "Could not reach the server. Check the URL and connection."
-        ActiveRoomDiscoveryFailure.ServerUnavailable -> "The server could not load active rooms right now."
-        ActiveRoomDiscoveryFailure.MalformedResponse -> "The server returned an unsupported room list."
-    }
+private fun ActiveRoomDiscoveryFailure.toUserMessage(): String = when (this) {
+    ActiveRoomDiscoveryFailure.InvalidServerUrl -> "Enter a valid server URL."
+    ActiveRoomDiscoveryFailure.InsecureServerUrl -> "Use an HTTPS server URL for this build."
+    ActiveRoomDiscoveryFailure.NetworkUnavailable ->
+        "Could not reach the server. Check the URL and connection."
+    ActiveRoomDiscoveryFailure.ServerUnavailable ->
+        "The server could not load active rooms right now."
+    ActiveRoomDiscoveryFailure.MalformedResponse -> "The server returned an unsupported room list."
+}
 
 private fun Throwable.toJoinErrorMessage(): String = when (this) {
     is ServerConfigParseException ->
@@ -288,18 +296,12 @@ sealed interface RoomDiscoveryStatus {
 
     data class Loading(val previousRooms: List<ActiveRoom>?) : RoomDiscoveryStatus
 
-    data class Loaded(
-        val rooms: List<ActiveRoom>,
-        val loadedAt: Instant,
-        val isStale: Boolean,
-    ) : RoomDiscoveryStatus
+    data class Loaded(val rooms: List<ActiveRoom>, val loadedAt: Instant, val isStale: Boolean) :
+        RoomDiscoveryStatus
 
     data class Empty(val loadedAt: Instant) : RoomDiscoveryStatus
 
-    data class Error(
-        val message: String,
-        val staleRooms: List<ActiveRoom>?,
-    ) : RoomDiscoveryStatus
+    data class Error(val message: String, val staleRooms: List<ActiveRoom>?) : RoomDiscoveryStatus
 }
 
 data class RoomJoinUiState(
@@ -324,10 +326,7 @@ sealed interface RoomJoinStatus {
 
     data object CheckingCompatibility : RoomJoinStatus
 
-    data class ReadyToConnect(
-        val request: RoomJoinRequest,
-        val demoMode: Boolean,
-    ) : RoomJoinStatus
+    data class ReadyToConnect(val request: RoomJoinRequest, val demoMode: Boolean) : RoomJoinStatus
 
     data class Error(val message: String) : RoomJoinStatus
 }
@@ -351,20 +350,12 @@ private sealed interface JoinValidationResult {
     data class Invalid(val message: String) : JoinValidationResult
 }
 
-private data class ParticipantSessionKey(
-    val serverBaseUrl: String,
-    val roomId: String,
-)
+private data class ParticipantSessionKey(val serverBaseUrl: String, val roomId: String)
 
-private class ParticipantSessionStore(
-    private val participantIdGenerator: () -> String,
-) {
+private class ParticipantSessionStore(private val participantIdGenerator: () -> String) {
     private val participantIdsByRoom = mutableMapOf<ParticipantSessionKey, String>()
 
-    fun participantIdFor(
-        serverBaseUrl: String,
-        roomId: String,
-    ): String =
+    fun participantIdFor(serverBaseUrl: String, roomId: String): String =
         participantIdsByRoom.getOrPut(
             ParticipantSessionKey(
                 serverBaseUrl = serverBaseUrl,
@@ -374,10 +365,7 @@ private class ParticipantSessionStore(
         )
 }
 
-private data class RoomInput(
-    val roomId: String,
-    val serverBaseUrl: String?,
-)
+private data class RoomInput(val roomId: String, val serverBaseUrl: String?)
 
 private const val MAX_SHARED_TEXT_LENGTH = 200
 private const val MAX_PIN_LENGTH = 64
@@ -411,7 +399,11 @@ private fun parseManualRoomId(value: String): RoomInput? {
 private fun parseRoomLink(value: String): RoomInput? {
     val uri = runCatching { URI(value) }.getOrNull()
     return uri
-        ?.takeIf { it.scheme in setOf(HTTP_SCHEME, HTTPS_SCHEME) && it.userInfo == null && !it.host.isNullOrBlank() }
+        ?.takeIf {
+            it.scheme in setOf(HTTP_SCHEME, HTTPS_SCHEME) &&
+                it.userInfo == null &&
+                !it.host.isNullOrBlank()
+        }
         ?.rawQuery
         ?.split('&')
         ?.firstNotNullOfOrNull { parameter -> parameter.toRoomQueryValue() }
@@ -432,16 +424,15 @@ private fun String.toRoomQueryValue(): String? {
     return parameterValue?.takeIf { name == ROOM_QUERY_PARAMETER }
 }
 
-private fun URI.toServerBaseUrl(): String =
-    URI(
-        scheme.lowercase(),
-        null,
-        host,
-        port,
-        path.takeUnless { it.isNullOrBlank() || it == ROOT_PATH },
-        null,
-        null,
-    ).toString().trimEnd('/')
+private fun URI.toServerBaseUrl(): String = URI(
+    scheme.lowercase(),
+    null,
+    host,
+    port,
+    path.takeUnless { it.isNullOrBlank() || it == ROOT_PATH },
+    null,
+    null,
+).toString().trimEnd('/')
 
 private fun String.decodeUrlComponentOrNull(): String? =
     runCatching { URLDecoder.decode(this, StandardCharsets.UTF_8.name()) }.getOrNull()

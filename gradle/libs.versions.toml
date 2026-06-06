@@ -4,15 +4,15 @@ androidx-activity = "1.9.3"
 androidx-core = "1.15.0"
 androidx-lifecycle = "2.8.7"
 compose-bom = "2024.12.01"
-detekt = "2.0.0-alpha.2"
-gradle-doctor = "0.12.0"
+detekt = "2.0.0-alpha.3"
+gradle-doctor = "0.12.1"
 kotest = "5.9.1"
 kotlin = "2.2.10"
 kover = "0.9.8"
 mockk = "1.13.12"
 androidx-test-ext-junit = "1.2.1"
 owasp-dependency-check = "12.2.2"
-ktlint-gradle = "14.0.1"
+ktlint-gradle = "14.2.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
