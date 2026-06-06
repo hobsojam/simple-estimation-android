@@ -45,15 +45,18 @@ class ActiveRoomsJsonParser {
         (values[name] as? JsonValue.BooleanValue)?.value ?: throw ProtocolParseException()
 
     private fun JsonValue.ObjectValue.requiredInt(name: String): Int {
-        val number = (values[name] as? JsonValue.NumberValue)?.value ?: throw ProtocolParseException()
-        return number.toIntOrNull()?.takeIf { it.toString() == number } ?: throw ProtocolParseException()
+        val number =
+            (values[name] as? JsonValue.NumberValue)?.value ?: throw ProtocolParseException()
+        return number.toIntOrNull()?.takeIf { it.toString() == number }
+            ?: throw ProtocolParseException()
     }
 
     private fun JsonValue.ObjectValue.requiredBoundedInt(name: String, range: IntRange): Int =
         requiredInt(name).takeIf { it in range } ?: throw ProtocolParseException()
 
     private fun String.requireSharedText(): String =
-        takeIf { it.isNotEmpty() && it.length <= MAX_SHARED_TEXT_LENGTH } ?: throw ProtocolParseException()
+        takeIf { it.isNotEmpty() && it.length <= MAX_SHARED_TEXT_LENGTH }
+            ?: throw ProtocolParseException()
 }
 
 private class ProtocolParseException : IllegalArgumentException()
@@ -207,13 +210,12 @@ private class JsonParser(private val source: String) {
         if (!tryConsume(expected)) throw ProtocolParseException()
     }
 
-    private fun tryConsume(expected: Char): Boolean =
-        if (peek() == expected) {
-            index++
-            true
-        } else {
-            false
-        }
+    private fun tryConsume(expected: Char): Boolean = if (peek() == expected) {
+        index++
+        true
+    } else {
+        false
+    }
 
     private fun peek(): Char? = source.getOrNull(index)
 

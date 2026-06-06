@@ -5,12 +5,13 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 
-class ActiveRoomsJsonParserTest : FunSpec({
-    val parser = ActiveRoomsJsonParser()
+class ActiveRoomsJsonParserTest :
+    FunSpec({
+        val parser = ActiveRoomsJsonParser()
 
-    test("parses active rooms and ignores unknown fields") {
-        val rooms = parser.parse(
-            """
+        test("parses active rooms and ignores unknown fields") {
+            val rooms = parser.parse(
+                """
             [
               {
                 "id": " 0f48bd1c-b892-4b62-97ea-6fbe4df7198d ",
@@ -22,21 +23,21 @@ class ActiveRoomsJsonParserTest : FunSpec({
                 "unexpected": { "nested": "value" }
               }
             ]
-            """.trimIndent(),
-        ).getOrThrow()
+                """.trimIndent(),
+            ).getOrThrow()
 
-        rooms.shouldHaveSize(1)
-        rooms.single().id shouldBe "0f48bd1c-b892-4b62-97ea-6fbe4df7198d"
-        rooms.single().type shouldBe EstimationRoomType.PlanningPoker
-        rooms.single().name shouldBe "Sprint planning"
-        rooms.single().participantCount shouldBe 3
-        rooms.single().pinProtected shouldBe true
-        rooms.single().accessPinProtected shouldBe false
-    }
+            rooms.shouldHaveSize(1)
+            rooms.single().id shouldBe "0f48bd1c-b892-4b62-97ea-6fbe4df7198d"
+            rooms.single().type shouldBe EstimationRoomType.PlanningPoker
+            rooms.single().name shouldBe "Sprint planning"
+            rooms.single().participantCount shouldBe 3
+            rooms.single().pinProtected shouldBe true
+            rooms.single().accessPinProtected shouldBe false
+        }
 
-    test("accepts a null room name") {
-        val rooms = parser.parse(
-            """
+        test("accepts a null room name") {
+            val rooms = parser.parse(
+                """
             [
               {
                 "id": "room-1",
@@ -47,16 +48,16 @@ class ActiveRoomsJsonParserTest : FunSpec({
                 "accessPinProtected": true
               }
             ]
-            """.trimIndent(),
-        ).getOrThrow()
+                """.trimIndent(),
+            ).getOrThrow()
 
-        rooms.single().name shouldBe null
-        rooms.single().type shouldBe EstimationRoomType.Bucket
-    }
+            rooms.single().name shouldBe null
+            rooms.single().type shouldBe EstimationRoomType.Bucket
+        }
 
-    test("rejects unknown room types") {
-        parser.parse(
-            """
+        test("rejects unknown room types") {
+            parser.parse(
+                """
             [
               {
                 "id": "room-1",
@@ -67,13 +68,13 @@ class ActiveRoomsJsonParserTest : FunSpec({
                 "accessPinProtected": false
               }
             ]
-            """.trimIndent(),
-        ).isFailure shouldBe true
-    }
+                """.trimIndent(),
+            ).isFailure shouldBe true
+        }
 
-    test("rejects participant counts outside the server limit") {
-        parser.parse(
-            """
+        test("rejects participant counts outside the server limit") {
+            parser.parse(
+                """
             [
               {
                 "id": "room-1",
@@ -84,15 +85,15 @@ class ActiveRoomsJsonParserTest : FunSpec({
                 "accessPinProtected": false
               }
             ]
-            """.trimIndent(),
-        ).isFailure shouldBe true
-    }
+                """.trimIndent(),
+            ).isFailure shouldBe true
+        }
 
-    test("rejects empty and oversized text fields") {
-        val oversizedName = "x".repeat(201)
+        test("rejects empty and oversized text fields") {
+            val oversizedName = "x".repeat(201)
 
-        parser.parse(
-            """
+            parser.parse(
+                """
             [
               {
                 "id": "room-1",
@@ -103,11 +104,11 @@ class ActiveRoomsJsonParserTest : FunSpec({
                 "accessPinProtected": false
               }
             ]
-            """.trimIndent(),
-        ).isFailure shouldBe true
+                """.trimIndent(),
+            ).isFailure shouldBe true
 
-        parser.parse(
-            """
+            parser.parse(
+                """
             [
               {
                 "id": " ",
@@ -118,7 +119,7 @@ class ActiveRoomsJsonParserTest : FunSpec({
                 "accessPinProtected": false
               }
             ]
-            """.trimIndent(),
-        ).isFailure shouldBe true
-    }
-})
+                """.trimIndent(),
+            ).isFailure shouldBe true
+        }
+    })

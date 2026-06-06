@@ -69,7 +69,9 @@ class SimpleEstimationAppTest {
         composeRule.onNodeWithText("Join room").performClick()
 
         composeRule.onNodeWithText("Active rooms").assertIsDisplayed()
-        composeRule.onNodeWithText("Demo mode is enabled on this server. Room data may reset without notice.")
+        composeRule.onNodeWithText(
+            "Demo mode is enabled on this server. Room data may reset without notice.",
+        )
             .assertIsDisplayed()
         composeRule.onNodeWithText("Ready to connect as Avery.").assertIsDisplayed()
     }

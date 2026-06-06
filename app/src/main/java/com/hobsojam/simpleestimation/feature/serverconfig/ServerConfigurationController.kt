@@ -52,8 +52,14 @@ class ServerConfigurationController(
         val roomId = uiState.roomId.trim()
         val displayName = uiState.displayName.trim()
         return when {
-            roomId.isEmpty() -> { showError("Enter a room ID before continuing."); false }
-            displayName.isEmpty() -> { showError("Enter a display name before continuing."); false }
+            roomId.isEmpty() -> {
+                showError("Enter a room ID before continuing.")
+                false
+            }
+            displayName.isEmpty() -> {
+                showError("Enter a display name before continuing.")
+                false
+            }
             else -> true
         }
     }
@@ -63,7 +69,8 @@ class ServerConfigurationController(
             is ProtocolCompatibility.Compatible -> uiState.copy(
                 status = ServerConfigurationStatus.ReadyToJoin(
                     demoMode = compatibility.config.demoMode,
-                    message = "Protocol version ${compatibility.config.protocolVersion} is supported. " +
+                    message =
+                    "Protocol version ${compatibility.config.protocolVersion} is supported. " +
                         "Ready to join room ${uiState.roomId.trim()}.",
                 ),
             )
@@ -95,16 +102,9 @@ sealed interface ServerConfigurationStatus {
     data object Idle : ServerConfigurationStatus
     data object Checking : ServerConfigurationStatus
 
-    data class ReadyToJoin(
-        val demoMode: Boolean,
-        val message: String,
-    ) : ServerConfigurationStatus
+    data class ReadyToJoin(val demoMode: Boolean, val message: String) : ServerConfigurationStatus
 
-    data class BlockedByUpgrade(
-        val message: String,
-    ) : ServerConfigurationStatus
+    data class BlockedByUpgrade(val message: String) : ServerConfigurationStatus
 
-    data class Error(
-        val message: String,
-    ) : ServerConfigurationStatus
+    data class Error(val message: String) : ServerConfigurationStatus
 }

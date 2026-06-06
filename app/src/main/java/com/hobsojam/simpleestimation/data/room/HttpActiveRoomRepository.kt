@@ -70,27 +70,34 @@ class HttpActiveRoomRepository(
             },
         )
 
-    private fun validatedRoomsUri(serverBaseUrl: String): URI? =
-        serverBaseUrl.trim()
-            .takeIf { it.isNotEmpty() }
-            ?.let { runCatching { URI(it) }.getOrNull() }
-            ?.takeIf { it.isValidServerUri() }
-            ?.let { uri ->
-                val normalizedPath = uri.path.orEmpty().trimEnd('/')
-                URI(uri.scheme, uri.userInfo, uri.host, uri.port, normalizedPath + ACTIVE_ROOMS_PATH, null, null)
-            }
+    private fun validatedRoomsUri(serverBaseUrl: String): URI? = serverBaseUrl.trim()
+        .takeIf { it.isNotEmpty() }
+        ?.let { runCatching { URI(it) }.getOrNull() }
+        ?.takeIf { it.isValidServerUri() }
+        ?.let { uri ->
+            val normalizedPath = uri.path.orEmpty().trimEnd('/')
+            URI(
+                uri.scheme,
+                uri.userInfo,
+                uri.host,
+                uri.port,
+                normalizedPath + ACTIVE_ROOMS_PATH,
+                null,
+                null,
+            )
+        }
 
-    private fun URI.isValidServerUri(): Boolean = isValidSchemeAndHost() && hasNoCredentialsOrParams()
+    private fun URI.isValidServerUri(): Boolean =
+        isValidSchemeAndHost() && hasNoCredentialsOrParams()
 
     private fun URI.isValidSchemeAndHost(): Boolean =
         scheme in setOf("http", "https") && !host.isNullOrBlank() && userInfo == null
 
     private fun URI.hasNoCredentialsOrParams(): Boolean = query == null && fragment == null
 
-    private inline fun <T> HttpURLConnection.useSafely(block: HttpURLConnection.() -> T): T =
-        try {
-            block()
-        } finally {
-            disconnect()
-        }
+    private inline fun <T> HttpURLConnection.useSafely(block: HttpURLConnection.() -> T): T = try {
+        block()
+    } finally {
+        disconnect()
+    }
 }

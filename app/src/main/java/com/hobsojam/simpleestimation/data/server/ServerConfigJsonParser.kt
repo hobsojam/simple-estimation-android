@@ -10,11 +10,15 @@ object ServerConfigJsonParser {
         val demoMode = demoModePattern.find(json)?.groupValues?.get(1)?.toBooleanStrictOrNull()
         val protocolVersion = protocolVersionPattern.find(json)?.groupValues?.get(1)?.toIntOrNull()
         return when {
-            demoMode == null -> Result.failure(ServerConfigParseException("Server configuration is missing demo mode."))
+            demoMode == null -> Result.failure(
+                ServerConfigParseException("Server configuration is missing demo mode."),
+            )
             protocolVersion == null -> Result.failure(
                 ServerConfigParseException("Server configuration is missing protocol version."),
             )
-            else -> Result.success(ServerConfig(demoMode = demoMode, protocolVersion = protocolVersion))
+            else -> Result.success(
+                ServerConfig(demoMode = demoMode, protocolVersion = protocolVersion),
+            )
         }
     }
 }
