@@ -22,7 +22,7 @@ class RoomDiscoveryStateHolder(
     private val cleartextAllowed: Boolean = false,
     private val participantIdGenerator: () -> String = { UUID.randomUUID().toString() },
 ) {
-    private val participantIdsByRoom = mutableMapOf<ParticipantSessionKey, String>()
+    private val participantSessionStore = ParticipantSessionStore(participantIdGenerator)
 
     var uiState by mutableStateOf(
         RoomDiscoveryUiState(
@@ -147,7 +147,7 @@ class RoomDiscoveryStateHolder(
                         RoomJoinRequest(
                             serverBaseUrl = validatedServerBaseUrl,
                             roomId = roomId,
-                            participantId = participantIdFor(
+                            participantId = participantSessionStore.participantIdFor(
                                 serverBaseUrl = validatedServerBaseUrl,
                                 roomId = roomId,
                             ),
@@ -208,18 +208,6 @@ class RoomDiscoveryStateHolder(
             ActiveRoomDiscoveryFailure.ServerUnavailable -> "The server could not load active rooms right now."
             ActiveRoomDiscoveryFailure.MalformedResponse -> "The server returned an unsupported room list."
         }
-
-    private fun participantIdFor(
-        serverBaseUrl: String,
-        roomId: String,
-    ): String =
-        participantIdsByRoom.getOrPut(
-            ParticipantSessionKey(
-                serverBaseUrl = serverBaseUrl,
-                roomId = roomId,
-            ),
-            participantIdGenerator,
-        )
 }
 
 data class RoomDiscoveryUiState(
@@ -284,6 +272,24 @@ private data class ParticipantSessionKey(
     val serverBaseUrl: String,
     val roomId: String,
 )
+
+private class ParticipantSessionStore(
+    private val participantIdGenerator: () -> String,
+) {
+    private val participantIdsByRoom = mutableMapOf<ParticipantSessionKey, String>()
+
+    fun participantIdFor(
+        serverBaseUrl: String,
+        roomId: String,
+    ): String =
+        participantIdsByRoom.getOrPut(
+            ParticipantSessionKey(
+                serverBaseUrl = serverBaseUrl,
+                roomId = roomId,
+            ),
+            participantIdGenerator,
+        )
+}
 
 private data class RoomInput(
     val roomId: String,
