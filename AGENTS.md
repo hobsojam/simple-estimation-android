@@ -302,7 +302,9 @@ flows that require Android platform integration.
 - Add `ktlint` during the initial Gradle scaffold and configure it to enforce
   the automatable subset of Google Android Kotlin Style.
 - Commit the shared `.editorconfig` used by `ktlint`; do not rely on individual
-  Android Studio settings.
+  Android Studio settings. Check `.editorconfig` for baseline file conventions
+  including character encoding (UTF-8) and line endings (LF) — these apply to
+  all files in the repository.
 - Run `.\gradlew.bat ktlintCheck` before pushing and in CI. Use
   `.\gradlew.bat ktlintFormat` to apply automatic formatting fixes.
 - Run `.\gradlew.bat detekt` before pushing and in CI. Detekt enforces

@@ -3,9 +3,13 @@ package com.hobsojam.simpleestimation.feature.roomsession
 import com.hobsojam.simpleestimation.domain.room.RoomSession
 import com.hobsojam.simpleestimation.domain.room.RoomSessionClient
 import com.hobsojam.simpleestimation.domain.room.RoomSessionListener
+import com.hobsojam.simpleestimation.domain.room.ServerErrorCode
+import com.hobsojam.simpleestimation.domain.room.SessionError
+import com.hobsojam.simpleestimation.domain.room.SessionRoomState
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinRequest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 class RoomSessionStateHolderTest :
     DescribeSpec({
@@ -163,7 +167,110 @@ class RoomSessionStateHolderTest :
                 stateHolder.state shouldBe RoomSessionState.Idle
             }
         }
+
+        describe("onMessage") {
+            it("transitions to Active and sets roomState on the first state message") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+
+                client.lastListener!!.onOpen()
+                client.lastListener!!.onMessage(PLANNING_POKER_STATE_JSON)
+
+                val active = stateHolder.state.shouldBeInstanceOf<RoomSessionState.Active>()
+                active.roomState.shouldBeInstanceOf<SessionRoomState.PlanningPoker>()
+                active.lastError shouldBe null
+            }
+
+            it("updates roomState and clears lastError on subsequent state messages") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+                client.lastListener!!.onMessage(PLANNING_POKER_STATE_JSON)
+                client.lastListener!!.onMessage(ERROR_JSON)
+
+                client.lastListener!!.onMessage(PLANNING_POKER_STATE_JSON)
+
+                val active = stateHolder.state.shouldBeInstanceOf<RoomSessionState.Active>()
+                active.roomState.shouldBeInstanceOf<SessionRoomState.PlanningPoker>()
+                active.lastError shouldBe null
+            }
+
+            it("sets lastError on an error message while Active") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+                client.lastListener!!.onMessage(PLANNING_POKER_STATE_JSON)
+
+                client.lastListener!!.onMessage(ERROR_JSON)
+
+                val active = stateHolder.state.shouldBeInstanceOf<RoomSessionState.Active>()
+                val error = active.lastError.shouldBeInstanceOf<SessionError.KnownError>()
+                error.code shouldBe ServerErrorCode.AdminRequired
+            }
+
+            it("ignores error messages received before any state message") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                client.lastListener!!.onMessage(ERROR_JSON)
+
+                stateHolder.state.shouldBeInstanceOf<RoomSessionState.Active>()
+                    .roomState shouldBe null
+            }
+
+            it("ignores malformed messages without changing roomState") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+                client.lastListener!!.onMessage(PLANNING_POKER_STATE_JSON)
+                val roomState = (stateHolder.state as RoomSessionState.Active).roomState
+
+                client.lastListener!!.onMessage("{bad json}")
+
+                (stateHolder.state as RoomSessionState.Active).roomState shouldBe roomState
+            }
+
+            it("ignores onMessage from a replaced session") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+
+                stateHolder.connect(validRequest)
+                val staleListener = client.lastListener!!
+                staleListener.onOpen()
+                stateHolder.connect(validRequest)
+
+                staleListener.onMessage(PLANNING_POKER_STATE_JSON)
+
+                stateHolder.state shouldBe RoomSessionState.Connecting
+            }
+        }
     })
+
+private const val PLANNING_POKER_STATE_JSON = """
+{
+  "type": "state",
+  "room": {
+    "id": "room-1",
+    "type": "planning-poker",
+    "name": "Test Room",
+    "pinProtected": false,
+    "facilitatorId": null,
+    "revealed": false,
+    "timer": { "endsAt": null, "durationSeconds": null, "serverNow": 1000000 },
+    "participants": [],
+    "items": []
+  }
+}
+"""
+
+private const val ERROR_JSON =
+    """{"type":"error","code":"admin_required","message":"Only the facilitator"}"""
 
 private class FakeRoomSessionClient : RoomSessionClient {
     var lastConnectUrl: String? = null
