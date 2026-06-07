@@ -77,6 +77,62 @@ class RoomSessionStateHolderTest :
             }
         }
 
+        describe("stale callbacks from replaced sessions") {
+            it("ignores onOpen from a replaced session") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+
+                stateHolder.connect(validRequest)
+                val staleListener = client.lastListener!!
+                stateHolder.connect(validRequest)
+
+                staleListener.onOpen()
+
+                stateHolder.state shouldBe RoomSessionState.Connecting
+            }
+
+            it("ignores onClosing from a replaced session") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+
+                stateHolder.connect(validRequest)
+                val staleListener = client.lastListener!!
+                stateHolder.connect(validRequest)
+
+                staleListener.onClosing(code = 1000, reason = "")
+
+                stateHolder.state shouldBe RoomSessionState.Connecting
+            }
+
+            it("does not clear activeSession when onClosing fires from a replaced session") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+
+                stateHolder.connect(validRequest)
+                val staleListener = client.lastListener!!
+                stateHolder.connect(validRequest)
+                val activeSession = client.lastSession!!
+
+                staleListener.onClosing(code = 1000, reason = "")
+                stateHolder.disconnect()
+
+                activeSession.closeCount shouldBe 1
+            }
+
+            it("ignores onFailure from a replaced session") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+
+                stateHolder.connect(validRequest)
+                val staleListener = client.lastListener!!
+                stateHolder.connect(validRequest)
+
+                staleListener.onFailure(Exception("network error"))
+
+                stateHolder.state shouldBe RoomSessionState.Connecting
+            }
+        }
+
         describe("disconnect") {
             it("transitions to Idle after disconnect") {
                 val client = FakeRoomSessionClient()
@@ -113,6 +169,7 @@ private class FakeRoomSessionClient : RoomSessionClient {
     var lastConnectUrl: String? = null
     var lastJoinMessage: String? = null
     var lastSession: FakeRoomSession? = null
+    var lastListener: RoomSessionListener? = null
 
     override fun connect(
         url: String,
@@ -121,6 +178,7 @@ private class FakeRoomSessionClient : RoomSessionClient {
     ): RoomSession {
         lastConnectUrl = url
         lastJoinMessage = joinMessage
+        lastListener = listener
         return FakeRoomSession().also { lastSession = it }
     }
 }

@@ -16,8 +16,11 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
 
     private var activeSession: RoomSession? = null
 
+    @Volatile private var connectionGeneration = 0
+
     fun connect(request: RoomJoinRequest) {
         closeActiveSession()
+        val generation = ++connectionGeneration
         state = RoomSessionState.Connecting
         val url = ServerBaseUrl.fromValidated(request.serverBaseUrl)
             .webSocketSessionUrl(
@@ -31,7 +34,7 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
         activeSession = sessionClient.connect(
             url = url,
             joinMessage = joinMessage,
-            listener = ConnectionListener(),
+            listener = ConnectionListener(generation),
         )
     }
 
@@ -45,21 +48,27 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
         activeSession = null
     }
 
-    private inner class ConnectionListener : RoomSessionListener {
+    private inner class ConnectionListener(private val generation: Int) : RoomSessionListener {
+        private fun isCurrent() = generation == connectionGeneration
+
         override fun onOpen() {
-            state = RoomSessionState.Active
+            if (isCurrent()) state = RoomSessionState.Active
         }
 
         override fun onMessage(text: String) = Unit
 
         override fun onClosing(code: Int, reason: String) {
-            state = RoomSessionState.Disconnected(code = code)
-            activeSession = null
+            if (isCurrent()) {
+                state = RoomSessionState.Disconnected(code = code)
+                activeSession = null
+            }
         }
 
         override fun onFailure(cause: Throwable) {
-            state = RoomSessionState.Failed(message = cause.message ?: "Connection failed")
-            activeSession = null
+            if (isCurrent()) {
+                state = RoomSessionState.Failed(message = cause.message ?: "Connection failed")
+                activeSession = null
+            }
         }
     }
 }
