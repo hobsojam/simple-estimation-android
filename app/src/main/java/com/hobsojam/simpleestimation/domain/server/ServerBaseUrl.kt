@@ -2,7 +2,11 @@ package com.hobsojam.simpleestimation.domain.server
 
 import java.net.URI
 
-data class ServerBaseUrl private constructor(val value: String) {
+class ServerBaseUrl private constructor(val value: String) {
+    override fun equals(other: Any?): Boolean = other is ServerBaseUrl && value == other.value
+    override fun hashCode(): Int = value.hashCode()
+    override fun toString(): String = "ServerBaseUrl($value)"
+
     fun configEndpoint(): String = "$value/api/config"
 
     fun webSocketEndpoint(): String {
