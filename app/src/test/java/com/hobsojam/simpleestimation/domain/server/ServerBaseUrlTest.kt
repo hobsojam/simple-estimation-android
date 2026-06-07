@@ -45,4 +45,28 @@ class ServerBaseUrlTest :
 
             result.exceptionOrNull() shouldNotBe null
         }
+
+        test("derives WSS session URL with room ID and participant ID query parameters") {
+            val baseUrl = ServerBaseUrl.parse(
+                rawValue = "https://example.com",
+                cleartextAllowed = false,
+            ).getOrThrow()
+
+            baseUrl.webSocketSessionUrl(
+                roomId = "room-1",
+                participantId = "participant-1",
+            ) shouldBe "wss://example.com/ws?roomId=room-1&participantId=participant-1"
+        }
+
+        test("derives WS session URL with query parameters when cleartext is allowed") {
+            val baseUrl = ServerBaseUrl.parse(
+                rawValue = "http://10.0.2.2:3000",
+                cleartextAllowed = true,
+            ).getOrThrow()
+
+            baseUrl.webSocketSessionUrl(
+                roomId = "room-1",
+                participantId = "participant-1",
+            ) shouldBe "ws://10.0.2.2:3000/ws?roomId=room-1&participantId=participant-1"
+        }
     })
