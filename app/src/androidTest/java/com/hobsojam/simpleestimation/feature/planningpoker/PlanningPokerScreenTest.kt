@@ -1,6 +1,9 @@
 package com.hobsojam.simpleestimation.feature.planningpoker
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -46,7 +49,7 @@ class PlanningPokerScreenTest {
 
     @Test
     fun selectsValidVoteCardAndShowsVotingProgressWhileVotesAreHidden() {
-        var selectedVote: String? = null
+        var selectedVote: String? by mutableStateOf(null)
         composeRule.setContent {
             MaterialTheme {
                 PlanningPokerScreen(
@@ -64,14 +67,6 @@ class PlanningPokerScreenTest {
         }
 
         composeRule.onNodeWithContentDescription("Vote infinity").performClick()
-        composeRule.setContent {
-            MaterialTheme {
-                PlanningPokerScreen(
-                    state = hiddenVotesState(selectedVote = selectedVote),
-                    onVoteSelected = { selectedVote = it },
-                )
-            }
-        }
 
         composeRule
             .onNode(
