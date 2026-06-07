@@ -23,7 +23,8 @@ internal object RoomJoinMessageBuilder {
                 '\b' -> append("\\b")
                 '' -> append("\\f")
                 else -> if (char.code < CONTROL_CHAR_THRESHOLD) {
-                    append("\\u${char.code.toString(HEX_RADIX).padStart(UNICODE_ESCAPE_WIDTH, '0')}")
+                    val hex = char.code.toString(HEX_RADIX).padStart(UNICODE_ESCAPE_WIDTH, '0')
+                    append("\\u$hex")
                 } else {
                     append(char)
                 }
