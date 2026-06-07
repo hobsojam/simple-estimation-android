@@ -27,12 +27,32 @@ class ServerBaseUrl private constructor(val value: String) {
         ).toString()
     }
 
+    fun webSocketSessionUrl(roomId: String, participantId: String): String {
+        val uri = URI(value)
+        val wsScheme = when (uri.scheme) {
+            HTTPS_SCHEME -> WSS_SCHEME
+            HTTP_SCHEME -> WS_SCHEME
+            else -> error("Unsupported server URL scheme")
+        }
+        return URI(
+            wsScheme,
+            uri.userInfo,
+            uri.host,
+            uri.port,
+            WS_PATH,
+            "roomId=$roomId&participantId=$participantId",
+            null,
+        ).toString()
+    }
+
     companion object {
         private const val HTTPS_SCHEME = "https"
         private const val HTTP_SCHEME = "http"
         private const val WSS_SCHEME = "wss"
         private const val WS_SCHEME = "ws"
         private const val WS_PATH = "/ws"
+
+        internal fun fromValidated(value: String): ServerBaseUrl = ServerBaseUrl(value)
 
         fun parse(rawValue: String, cleartextAllowed: Boolean): Result<ServerBaseUrl> {
             val trimmed = rawValue.trim().trimEnd('/')
