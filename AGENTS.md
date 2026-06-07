@@ -180,12 +180,20 @@ addition to automated Compose tests.
 
 ### Frameworks
 
-| Purpose | Library |
-|---|---|
-| Test runner and assertions | [Kotest](https://kotest.io) (`kotest-runner-junit5`, `kotest-assertions-core`) |
-| Mocking | [MockK](https://mockk.io) (`mockk`) |
+| Layer | Test runner | Notes |
+|---|---|---|
+| Unit tests | [Kotest](https://kotest.io) (`kotest-runner-junit5`, `kotest-assertions-core`) | JUnit 5 platform |
+| Instrumented (Compose UI) tests | JUnit 4 via `createComposeRule()` | See note below |
+| Mocking | [MockK](https://mockk.io) (`mockk`) | Both layers |
 
-Use `FunSpec` for simple unit tests and `DescribeSpec` for tests with multiple related cases or nested context. Do not use JUnit 4 — it has been removed from the project.
+Use `FunSpec` for simple unit tests and `DescribeSpec` for tests with multiple related cases or
+nested context. Do not use JUnit 4 for unit tests — it has been removed from the project.
+
+**Why JUnit 4 for instrumented tests:** AndroidX's `createComposeRule()` is built on JUnit 4's
+`@Rule` mechanism. JUnit 5 dropped `@Rule` in favour of its own extension model, and JUnit 5 has
+no equivalent rule for Compose. TestNG has the same limitation. The JUnit 4 dependency is scoped
+to `androidTestImplementation` only and is load-bearing Compose test infrastructure, not a
+framework preference.
 
 Example unit test:
 
