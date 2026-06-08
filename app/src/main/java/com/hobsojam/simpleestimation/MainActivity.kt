@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
                 onSubmitJoin = roomDiscoveryViewModel::submitJoin,
                 onSessionConnect = roomSessionViewModel::connect,
                 onVote = roomSessionViewModel::sendVote,
+                onMoveItem = roomSessionViewModel::sendMoveItem,
                 onLeaveSession = roomSessionViewModel::disconnect,
             )
         }
@@ -91,6 +92,7 @@ fun SimpleEstimationApp(
     onSubmitJoin: () -> Unit,
     onSessionConnect: (com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinRequest) -> Unit,
     onVote: (String) -> Boolean,
+    onMoveItem: (String, String?) -> Boolean,
     onLeaveSession: () -> Unit,
 ) {
     LaunchedEffect(uiState.join.status) {
@@ -123,6 +125,7 @@ fun SimpleEstimationApp(
                     sessionState = sessionState,
                     displayName = displayName,
                     onVote = onVote,
+                    onMoveItem = onMoveItem,
                     onLeave = onLeaveSession,
                 )
             }
@@ -150,6 +153,7 @@ private fun SimpleEstimationAppPreview() {
         onSubmitJoin = {},
         onSessionConnect = {},
         onVote = { false },
+        onMoveItem = { _, _ -> false },
         onLeaveSession = {},
     )
 }

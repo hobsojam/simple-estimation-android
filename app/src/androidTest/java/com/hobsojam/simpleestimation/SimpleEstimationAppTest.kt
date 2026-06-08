@@ -59,6 +59,7 @@ class SimpleEstimationAppTest {
                 displayName = "Avery",
                 onSessionConnect = {},
                 onVote = { false },
+                onMoveItem = { _, _ -> false },
                 onLeaveSession = {},
             )
         }
