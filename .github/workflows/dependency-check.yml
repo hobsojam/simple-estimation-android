@@ -25,13 +25,13 @@ jobs:
           java-version: '25'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Install Android SDK packages
         run: sdkmanager "platforms;android-35" "build-tools;36.0.0"
 
       - name: Restore vulnerability database
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: build/dependency-check-data
           key: ${{ runner.os }}-dependency-check-${{ github.run_id }}
@@ -45,14 +45,14 @@ jobs:
 
       - name: Save vulnerability database
         if: always()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: build/dependency-check-data
           key: ${{ runner.os }}-dependency-check-${{ github.run_id }}
 
       - name: Upload dependency-check reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dependency-check-reports
           path: app/build/reports/dependency-check-report.*
