@@ -3,10 +3,14 @@ package com.hobsojam.simpleestimation.feature.roomsession
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.hobsojam.simpleestimation.data.websocket.ParsedRoomMessage
 import com.hobsojam.simpleestimation.data.websocket.RoomJoinMessageBuilder
+import com.hobsojam.simpleestimation.data.websocket.RoomSessionMessageParser
 import com.hobsojam.simpleestimation.domain.room.RoomSession
 import com.hobsojam.simpleestimation.domain.room.RoomSessionClient
 import com.hobsojam.simpleestimation.domain.room.RoomSessionListener
+import com.hobsojam.simpleestimation.domain.room.SessionError
+import com.hobsojam.simpleestimation.domain.room.SessionRoomState
 import com.hobsojam.simpleestimation.domain.server.ServerBaseUrl
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinRequest
 
@@ -15,6 +19,7 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
         private set
 
     private var activeSession: RoomSession? = null
+    private val messageParser = RoomSessionMessageParser()
 
     @Volatile private var connectionGeneration = 0
 
@@ -52,10 +57,21 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
         private fun isCurrent() = generation == connectionGeneration
 
         override fun onOpen() {
-            if (isCurrent()) state = RoomSessionState.Active
+            if (isCurrent()) state = RoomSessionState.Active()
         }
 
-        override fun onMessage(text: String) = Unit
+        override fun onMessage(text: String) {
+            if (!isCurrent()) return
+            val current = state as? RoomSessionState.Active ?: return
+            messageParser.parse(text).onSuccess { parsed ->
+                state = when (parsed) {
+                    is ParsedRoomMessage.RoomState ->
+                        current.copy(roomState = parsed.state, lastError = null)
+                    is ParsedRoomMessage.ServerError ->
+                        current.copy(lastError = parsed.error)
+                }
+            }
+        }
 
         override fun onClosing(code: Int, reason: String) {
             if (isCurrent()) {
@@ -76,7 +92,10 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
 sealed interface RoomSessionState {
     data object Idle : RoomSessionState
     data object Connecting : RoomSessionState
-    data object Active : RoomSessionState
+    data class Active(
+        val roomState: SessionRoomState? = null,
+        val lastError: SessionError? = null,
+    ) : RoomSessionState
     data class Disconnected(val code: Int) : RoomSessionState
     data class Failed(val message: String) : RoomSessionState
 }
