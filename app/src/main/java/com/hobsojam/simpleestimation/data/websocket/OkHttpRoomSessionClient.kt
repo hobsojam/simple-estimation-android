@@ -3,6 +3,7 @@ package com.hobsojam.simpleestimation.data.websocket
 import com.hobsojam.simpleestimation.domain.room.RoomSession
 import com.hobsojam.simpleestimation.domain.room.RoomSessionClient
 import com.hobsojam.simpleestimation.domain.room.RoomSessionListener
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -10,8 +11,18 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 
-class OkHttpRoomSessionClient(private val okHttpClient: OkHttpClient = OkHttpClient()) :
-    RoomSessionClient {
+private const val CONNECT_TIMEOUT_SECONDS = 10L
+private const val WRITE_TIMEOUT_SECONDS = 10L
+private const val PING_INTERVAL_SECONDS = 30L
+
+class OkHttpRoomSessionClient(
+    private val okHttpClient: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(0, TimeUnit.SECONDS)
+        .writeTimeout(WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .pingInterval(PING_INTERVAL_SECONDS, TimeUnit.SECONDS)
+        .build(),
+) : RoomSessionClient {
 
     override fun connect(
         url: String,
