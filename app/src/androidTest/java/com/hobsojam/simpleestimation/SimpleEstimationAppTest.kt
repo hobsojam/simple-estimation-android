@@ -9,6 +9,7 @@ import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinMode
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinRequest
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinStatus
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinUiState
+import com.hobsojam.simpleestimation.feature.roomsession.RoomSessionState
 import org.junit.Rule
 import org.junit.Test
 
@@ -54,6 +55,11 @@ class SimpleEstimationAppTest {
                 onAccessPinChanged = {},
                 onCancelJoin = {},
                 onSubmitJoin = {},
+                sessionState = RoomSessionState.Idle,
+                displayName = "Avery",
+                onSessionConnect = {},
+                onVote = { false },
+                onLeaveSession = {},
             )
         }
 
