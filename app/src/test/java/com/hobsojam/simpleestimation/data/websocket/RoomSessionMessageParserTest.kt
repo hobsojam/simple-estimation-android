@@ -534,6 +534,22 @@ class RoomSessionMessageParserTest :
                 ).isFailure shouldBe true
             }
 
+            it("returns failure for an unrecognized relative item position") {
+                parser.parse(
+                    """
+                    {
+                      "type": "state",
+                      "room": {
+                        "id": "r", "type": "relative", "name": null,
+                        "pinProtected": false, "facilitatorId": null, "revealed": false,
+                        "participants": [],
+                        "items": [{ "id": "i1", "label": "Task", "position": "999" }]
+                      }
+                    }
+                    """.trimIndent(),
+                ).isFailure shouldBe true
+            }
+
             it("returns failure when the items array exceeds 200") {
                 val items = (1..201).joinToString(",") { i ->
                     """{"id":"i$i","label":"Item $i","status":"pending","estimate":null}"""

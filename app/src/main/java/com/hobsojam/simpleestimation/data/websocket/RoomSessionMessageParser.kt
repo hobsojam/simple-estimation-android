@@ -25,6 +25,7 @@ private const val MAX_PARTICIPANTS = 100
 private const val MAX_ITEMS = 200
 
 private val VALID_BUCKET_POSITIONS = setOf("XS", "S", "M", "L", "XL")
+private val VALID_RELATIVE_POSITIONS = setOf("1", "2", "3", "5", "8", "13", "21")
 private const val UNKNOWN_ERROR_MESSAGE = "The server reported an error. Please try again."
 
 sealed interface ParsedRoomMessage {
@@ -144,10 +145,16 @@ internal class RoomSessionMessageParser {
 
     private fun parseRelativeItem(value: JsonValue): PositionedItem {
         val obj = value as? JsonValue.ObjectValue ?: throw ProtocolParseException()
+        val position = obj.optionalString("position")?.trim()
+        if (position != null &&
+            position !in VALID_RELATIVE_POSITIONS
+        ) {
+            throw ProtocolParseException()
+        }
         return PositionedItem(
             id = obj.requiredString("id").trim().requireSharedText(),
             label = obj.requiredString("label").trim().requireSharedText(),
-            position = obj.optionalString("position")?.trim(),
+            position = position,
         )
     }
 
