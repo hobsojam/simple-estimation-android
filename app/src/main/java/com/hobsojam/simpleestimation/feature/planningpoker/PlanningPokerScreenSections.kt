@@ -16,7 +16,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -52,17 +54,29 @@ internal fun ServerErrorBanner(message: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun RoomHeader(state: PlanningPokerUiState) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = state.roomName,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(
-            text = "Joined as ${state.participantName}",
-            style = MaterialTheme.typography.bodyMedium,
-        )
+internal fun RoomHeader(state: PlanningPokerUiState, onLeave: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = state.roomName,
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(
+                text = "Joined as ${state.participantName}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        TextButton(onClick = onLeave) {
+            Text("Leave")
+        }
     }
 }
 

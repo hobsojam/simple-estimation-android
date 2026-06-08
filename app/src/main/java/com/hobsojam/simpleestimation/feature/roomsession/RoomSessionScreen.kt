@@ -104,6 +104,7 @@ private fun ActiveRoomContent(
                 onVoteSelected = { vote ->
                     if (onVote(vote)) selectedVote = vote
                 },
+                onLeave = onLeave,
             )
         }
 

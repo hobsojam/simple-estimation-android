@@ -34,10 +34,13 @@ class RoomSessionStateHolder(
 
     @Volatile private var cancelPendingReconnect: (() -> Unit)? = null
 
+    @Volatile private var reconnectAttempt = 0
+
     fun connect(request: RoomJoinRequest) {
         cancelScheduledReconnect()
         currentRequest = request
-        doConnect(request, attempt = 0)
+        reconnectAttempt = 0
+        doConnect(request)
     }
 
     val displayName: String?
@@ -58,7 +61,7 @@ class RoomSessionStateHolder(
         } ?: false
     }
 
-    private fun doConnect(request: RoomJoinRequest, attempt: Int) {
+    private fun doConnect(request: RoomJoinRequest) {
         closeActiveSession()
         val generation = ++connectionGeneration
         state = RoomSessionState.Connecting
@@ -74,15 +77,16 @@ class RoomSessionStateHolder(
         activeSession = sessionClient.connect(
             url = url,
             joinMessage = joinMessage,
-            listener = ConnectionListener(generation = generation, attempt = attempt),
+            listener = ConnectionListener(generation = generation),
         )
     }
 
     private fun scheduleReconnect(request: RoomJoinRequest, nextAttempt: Int) {
+        reconnectAttempt = nextAttempt
         val delayMs = reconnectDelayMs(nextAttempt)
         state = RoomSessionState.Reconnecting(attempt = nextAttempt, delayMs = delayMs)
         cancelPendingReconnect = reconnectScheduler.schedule(delayMs) {
-            if (currentRequest === request) doConnect(request, nextAttempt)
+            if (currentRequest === request) doConnect(request)
         }
     }
 
@@ -96,12 +100,14 @@ class RoomSessionStateHolder(
         activeSession = null
     }
 
-    private inner class ConnectionListener(private val generation: Int, private val attempt: Int) :
-        RoomSessionListener {
+    private inner class ConnectionListener(private val generation: Int) : RoomSessionListener {
         private fun isCurrent() = generation == connectionGeneration
 
         override fun onOpen() {
-            if (isCurrent()) state = RoomSessionState.Active()
+            if (isCurrent()) {
+                reconnectAttempt = 0
+                state = RoomSessionState.Active()
+            }
         }
 
         override fun onMessage(text: String) {
@@ -124,7 +130,7 @@ class RoomSessionStateHolder(
             if (code == NORMAL_CLOSE_CODE || request == null) {
                 state = RoomSessionState.Disconnected(userMessage = closeCodeMessage(code))
             } else {
-                scheduleReconnect(request, attempt + 1)
+                scheduleReconnect(request, reconnectAttempt + 1)
             }
         }
 
@@ -135,7 +141,7 @@ class RoomSessionStateHolder(
             if (request == null) {
                 state = RoomSessionState.Failed(message = cause.message ?: "Connection failed")
             } else {
-                scheduleReconnect(request, attempt + 1)
+                scheduleReconnect(request, reconnectAttempt + 1)
             }
         }
     }

@@ -401,6 +401,28 @@ class RoomSessionStateHolderTest :
                 stateHolder.state shouldBe RoomSessionState.Idle
             }
 
+            it("backoff resets to 1 second after a successful reconnect") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                // Two failures accumulate backoff to attempt 2 (2-second delay).
+                client.lastListener!!.onFailure(Exception("error"))
+                scheduler.runPending()
+                client.lastListener!!.onFailure(Exception("error"))
+                scheduler.runPending()
+
+                // The reconnect succeeds — backoff should reset.
+                client.lastListener!!.onOpen()
+
+                // Next failure should schedule attempt 1 (1-second delay), not attempt 3.
+                client.lastListener!!.onFailure(Exception("error"))
+
+                scheduler.scheduledDelayMs shouldBe 1_000L
+            }
+
             it("connect cancels a pending reconnect and starts a fresh attempt 0") {
                 val client = FakeRoomSessionClient()
                 val scheduler = FakeReconnectScheduler()
