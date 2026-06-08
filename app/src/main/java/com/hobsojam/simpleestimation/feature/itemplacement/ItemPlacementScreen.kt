@@ -118,7 +118,6 @@ private fun PlacementErrorBanner(message: String, modifier: Modifier = Modifier)
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PlacementSection(
     label: String,
@@ -129,15 +128,14 @@ private fun PlacementSection(
     onItemClick: (PlacementItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val containerColor = if (onPlaceClick != null) {
+        MaterialTheme.colorScheme.secondaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (onPlaceClick != null) {
-                MaterialTheme.colorScheme.secondaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            },
-        ),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -162,27 +160,40 @@ private fun PlacementSection(
                     }
                 }
             }
-            if (items.isNotEmpty()) {
-                FlowRow(
-                    modifier = Modifier.padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    items.forEach { item ->
-                        val isSelected = item.id == selectedItemId
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { onItemClick(item) },
-                            label = { Text(item.label) },
-                            modifier = Modifier.semantics {
-                                role = Role.Button
-                                contentDescription = item.label
-                                stateDescription = if (isSelected) "Selected" else "Not selected"
-                            },
-                        )
-                    }
-                }
-            }
+            PlacementItems(
+                items = items,
+                selectedItemId = selectedItemId,
+                onItemClick = onItemClick,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PlacementItems(
+    items: List<PlacementItem>,
+    selectedItemId: String?,
+    onItemClick: (PlacementItem) -> Unit,
+) {
+    if (items.isEmpty()) return
+    FlowRow(
+        modifier = Modifier.padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        items.forEach { item ->
+            val isSelected = item.id == selectedItemId
+            FilterChip(
+                selected = isSelected,
+                onClick = { onItemClick(item) },
+                label = { Text(item.label) },
+                modifier = Modifier.semantics {
+                    role = Role.Button
+                    contentDescription = item.label
+                    stateDescription = if (isSelected) "Selected" else "Not selected"
+                },
+            )
         }
     }
 }
