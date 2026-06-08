@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,10 +91,15 @@ private fun ActiveRoomContent(
             val activeItemId = roomState.items
                 .firstOrNull { it.status == PokerItemStatus.Active }?.id
             var selectedVote by remember(activeItemId) { mutableStateOf<String?>(null) }
+            val lastError = sessionState.lastError
+            LaunchedEffect(lastError) {
+                if (lastError != null) selectedVote = null
+            }
             PlanningPokerScreen(
                 state = roomState.toUiState(
                     displayName = displayName ?: "",
                     selectedVote = selectedVote,
+                    serverError = lastError?.userMessage,
                 ),
                 onVoteSelected = { vote ->
                     if (onVote(vote)) selectedVote = vote

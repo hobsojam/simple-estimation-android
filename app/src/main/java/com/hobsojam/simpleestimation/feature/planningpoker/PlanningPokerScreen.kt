@@ -65,6 +65,7 @@ fun PlanningPokerScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         RoomHeader(state = state)
+        state.serverError?.let { ServerErrorBanner(message = it) }
         ActiveBacklogItemCard(label = state.activeBacklogItem)
         VoteCards(
             selectedVote = state.selectedVote,

@@ -211,6 +211,22 @@ class PlanningPokerStateMapperTest :
             }
         }
 
+        describe("serverError") {
+            it("passes through the provided error message") {
+                val uiState = baseRoom.toUiState(
+                    displayName = "Alice",
+                    selectedVote = null,
+                    serverError = "That is not a valid vote for this room.",
+                )
+                uiState.serverError shouldBe "That is not a valid vote for this room."
+            }
+
+            it("is null when no error is provided") {
+                val uiState = baseRoom.toUiState(displayName = "Alice", selectedVote = null)
+                uiState.serverError shouldBe null
+            }
+        }
+
         describe("acceptedEstimate") {
             it("returns null when votes are not revealed") {
                 val uiState = baseRoom.toUiState(displayName = "Alice", selectedVote = null)

@@ -7,6 +7,7 @@ import com.hobsojam.simpleestimation.domain.room.SessionRoomState
 internal fun SessionRoomState.PlanningPoker.toUiState(
     displayName: String,
     selectedVote: String?,
+    serverError: String? = null,
 ): PlanningPokerUiState {
     val activeItem = items.firstOrNull { it.status == PokerItemStatus.Active }
     val revealedVotes = if (revealed) {
@@ -35,6 +36,7 @@ internal fun SessionRoomState.PlanningPoker.toUiState(
         } else {
             null
         },
+        serverError = serverError,
     )
 }
 
