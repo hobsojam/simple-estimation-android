@@ -55,6 +55,7 @@ class PlanningPokerScreenTest {
                 PlanningPokerScreen(
                     state = hiddenVotesState(selectedVote = selectedVote),
                     onVoteSelected = { selectedVote = it },
+                    onLeave = {},
                 )
             }
         }
@@ -81,6 +82,7 @@ class PlanningPokerScreenTest {
                 PlanningPokerScreen(
                     state = revealedVotesState(),
                     onVoteSelected = {},
+                    onLeave = {},
                 )
             }
         }
@@ -93,12 +95,31 @@ class PlanningPokerScreenTest {
     }
 
     @Test
+    fun leaveButtonInvokesCallback() {
+        var leaveInvoked = false
+        composeRule.setContent {
+            MaterialTheme {
+                PlanningPokerScreen(
+                    state = hiddenVotesState(selectedVote = null),
+                    onVoteSelected = {},
+                    onLeave = { leaveInvoked = true },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Leave").performClick()
+
+        assert(leaveInvoked)
+    }
+
+    @Test
     fun doesNotExposeFacilitatorOnlyActions() {
         composeRule.setContent {
             MaterialTheme {
                 PlanningPokerScreen(
                     state = revealedVotesState(),
                     onVoteSelected = {},
+                    onLeave = {},
                 )
             }
         }

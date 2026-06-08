@@ -252,6 +252,56 @@ class RoomSessionStateHolderTest :
             }
         }
 
+        describe("sendVote") {
+            it("sends a vote message when the session is active and vote is valid") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                val sent = stateHolder.sendVote("5")
+
+                sent shouldBe true
+                client.lastSession!!.sentMessages shouldBe listOf("""{"type":"vote","vote":"5"}""")
+            }
+
+            it("sends a vote message for every valid planning poker value") {
+                val validVotes = listOf("1", "2", "3", "5", "8", "13", "21", "?", "∞", "☕")
+                validVotes.forEach { vote ->
+                    val client = FakeRoomSessionClient()
+                    val stateHolder = RoomSessionStateHolder(client)
+                    stateHolder.connect(validRequest)
+                    client.lastListener!!.onOpen()
+
+                    val sent = stateHolder.sendVote(vote)
+
+                    sent shouldBe true
+                    client.lastSession!!.sentMessages.last() shouldBe
+                        """{"type":"vote","vote":"$vote"}"""
+                }
+            }
+
+            it("returns false and does not send for an invalid vote value") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                val sent = stateHolder.sendVote("99")
+
+                sent shouldBe false
+                client.lastSession!!.sentMessages shouldBe emptyList()
+            }
+
+            it("returns false when there is no active session") {
+                val stateHolder = RoomSessionStateHolder(FakeRoomSessionClient())
+
+                val sent = stateHolder.sendVote("5")
+
+                sent shouldBe false
+            }
+        }
+
         describe("reconnect on failure") {
             it("transitions to Reconnecting after onFailure") {
                 val client = FakeRoomSessionClient()
@@ -349,6 +399,28 @@ class RoomSessionStateHolderTest :
                 scheduler.runPending()
 
                 stateHolder.state shouldBe RoomSessionState.Idle
+            }
+
+            it("backoff resets to 1 second after a successful reconnect") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                // Two failures accumulate backoff to attempt 2 (2-second delay).
+                client.lastListener!!.onFailure(Exception("error"))
+                scheduler.runPending()
+                client.lastListener!!.onFailure(Exception("error"))
+                scheduler.runPending()
+
+                // The reconnect succeeds — backoff should reset.
+                client.lastListener!!.onOpen()
+
+                // Next failure should schedule attempt 1 (1-second delay), not attempt 3.
+                client.lastListener!!.onFailure(Exception("error"))
+
+                scheduler.scheduledDelayMs shouldBe 1_000L
             }
 
             it("connect cancels a pending reconnect and starts a fresh attempt 0") {
@@ -462,9 +534,14 @@ private class FakeRoomSessionClient : RoomSessionClient {
 
 private class FakeRoomSession : RoomSession {
     var closeCount = 0
+    val sentMessages = mutableListOf<String>()
 
     override fun close() {
         closeCount++
+    }
+
+    override fun send(text: String) {
+        sentMessages.add(text)
     }
 }
 

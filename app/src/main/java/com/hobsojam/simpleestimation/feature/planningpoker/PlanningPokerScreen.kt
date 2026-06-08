@@ -46,6 +46,7 @@ fun PlanningPokerParticipantRoute() {
                     selectedVote = selectedVote,
                 ),
                 onVoteSelected = { selectedVote = it },
+                onLeave = {},
             )
         }
     }
@@ -55,6 +56,7 @@ fun PlanningPokerParticipantRoute() {
 fun PlanningPokerScreen(
     state: PlanningPokerUiState,
     onVoteSelected: (String) -> Unit,
+    onLeave: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -64,7 +66,8 @@ fun PlanningPokerScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        RoomHeader(state = state)
+        RoomHeader(state = state, onLeave = onLeave)
+        state.serverError?.let { ServerErrorBanner(message = it) }
         ActiveBacklogItemCard(label = state.activeBacklogItem)
         VoteCards(
             selectedVote = state.selectedVote,

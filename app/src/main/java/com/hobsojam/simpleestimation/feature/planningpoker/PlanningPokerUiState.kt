@@ -12,6 +12,7 @@ data class PlanningPokerUiState(
     val revealedVotes: List<RevealedVote> = emptyList(),
     val outlierParticipantNames: Set<String> = emptySet(),
     val acceptedEstimate: String? = null,
+    val serverError: String? = null,
 ) {
     val votesAreRevealed: Boolean = revealedVotes.isNotEmpty()
 }
