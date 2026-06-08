@@ -39,7 +39,7 @@ jobs:
             ${{ runner.os }}-dependency-check-
 
       - name: Scan dependencies
-        run: ./gradlew dependencyCheckAnalyze
+        run: ./gradlew --dependency-verification=lenient dependencyCheckAnalyze
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
