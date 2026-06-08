@@ -534,6 +534,25 @@ class RoomSessionMessageParserTest :
                 ).isFailure shouldBe true
             }
 
+            it("returns failure when the items array exceeds 200") {
+                val items = (1..201).joinToString(",") { i ->
+                    """{"id":"i$i","label":"Item $i","status":"pending","estimate":null}"""
+                }
+                parser.parse(
+                    """
+                    {
+                      "type": "state",
+                      "room": {
+                        "id": "room-1", "type": "planning-poker", "name": null,
+                        "pinProtected": false, "facilitatorId": null, "revealed": false,
+                        "timer": {"endsAt": null, "durationSeconds": null, "serverNow": 1000000},
+                        "participants": [], "items": [$items]
+                      }
+                    }
+                    """.trimIndent(),
+                ).isFailure shouldBe true
+            }
+
             it("returns failure for an error message missing the code field") {
                 val result = parser.parse("""{"type":"error","message":"Something went wrong"}""")
                 result.isFailure shouldBe true

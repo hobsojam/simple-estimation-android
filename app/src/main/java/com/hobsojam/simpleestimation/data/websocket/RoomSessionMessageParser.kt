@@ -22,7 +22,7 @@ import com.hobsojam.simpleestimation.domain.room.SessionError
 import com.hobsojam.simpleestimation.domain.room.SessionRoomState
 
 private const val MAX_PARTICIPANTS = 100
-private const val MAX_ITEMS = 500
+private const val MAX_ITEMS = 200
 
 private val VALID_BUCKET_POSITIONS = setOf("XS", "S", "M", "L", "XL")
 private const val UNKNOWN_ERROR_MESSAGE = "The server reported an error. Please try again."
