@@ -6,15 +6,21 @@ import androidx.compose.runtime.setValue
 import com.hobsojam.simpleestimation.data.websocket.ParsedRoomMessage
 import com.hobsojam.simpleestimation.data.websocket.RoomJoinMessageBuilder
 import com.hobsojam.simpleestimation.data.websocket.RoomSessionMessageParser
+import com.hobsojam.simpleestimation.domain.room.ReconnectScheduler
 import com.hobsojam.simpleestimation.domain.room.RoomSession
 import com.hobsojam.simpleestimation.domain.room.RoomSessionClient
 import com.hobsojam.simpleestimation.domain.room.RoomSessionListener
+import com.hobsojam.simpleestimation.domain.room.ScheduledExecutorReconnectScheduler
 import com.hobsojam.simpleestimation.domain.room.SessionError
 import com.hobsojam.simpleestimation.domain.room.SessionRoomState
+import com.hobsojam.simpleestimation.domain.room.reconnectDelayMs
 import com.hobsojam.simpleestimation.domain.server.ServerBaseUrl
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinRequest
 
-class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
+class RoomSessionStateHolder(
+    private val sessionClient: RoomSessionClient,
+    private val reconnectScheduler: ReconnectScheduler = ScheduledExecutorReconnectScheduler(),
+) {
     var state by mutableStateOf<RoomSessionState>(RoomSessionState.Idle)
         private set
 
@@ -23,7 +29,24 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
 
     @Volatile private var connectionGeneration = 0
 
+    @Volatile private var currentRequest: RoomJoinRequest? = null
+
+    @Volatile private var cancelPendingReconnect: (() -> Unit)? = null
+
     fun connect(request: RoomJoinRequest) {
+        cancelScheduledReconnect()
+        currentRequest = request
+        doConnect(request, attempt = 0)
+    }
+
+    fun disconnect() {
+        cancelScheduledReconnect()
+        currentRequest = null
+        closeActiveSession()
+        state = RoomSessionState.Idle
+    }
+
+    private fun doConnect(request: RoomJoinRequest, attempt: Int) {
         closeActiveSession()
         val generation = ++connectionGeneration
         state = RoomSessionState.Connecting
@@ -39,13 +62,21 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
         activeSession = sessionClient.connect(
             url = url,
             joinMessage = joinMessage,
-            listener = ConnectionListener(generation),
+            listener = ConnectionListener(generation = generation, attempt = attempt),
         )
     }
 
-    fun disconnect() {
-        closeActiveSession()
-        state = RoomSessionState.Idle
+    private fun scheduleReconnect(request: RoomJoinRequest, nextAttempt: Int) {
+        val delayMs = reconnectDelayMs(nextAttempt)
+        state = RoomSessionState.Reconnecting(attempt = nextAttempt, delayMs = delayMs)
+        cancelPendingReconnect = reconnectScheduler.schedule(delayMs) {
+            if (currentRequest === request) doConnect(request, nextAttempt)
+        }
+    }
+
+    private fun cancelScheduledReconnect() {
+        cancelPendingReconnect?.invoke()
+        cancelPendingReconnect = null
     }
 
     private fun closeActiveSession() {
@@ -53,7 +84,8 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
         activeSession = null
     }
 
-    private inner class ConnectionListener(private val generation: Int) : RoomSessionListener {
+    private inner class ConnectionListener(private val generation: Int, private val attempt: Int) :
+        RoomSessionListener {
         private fun isCurrent() = generation == connectionGeneration
 
         override fun onOpen() {
@@ -74,19 +106,36 @@ class RoomSessionStateHolder(private val sessionClient: RoomSessionClient) {
         }
 
         override fun onClosing(code: Int, reason: String) {
-            if (isCurrent()) {
-                state = RoomSessionState.Disconnected(code = code)
-                activeSession = null
+            if (!isCurrent()) return
+            activeSession = null
+            val request = currentRequest
+            if (code == NORMAL_CLOSE_CODE || request == null) {
+                state = RoomSessionState.Disconnected(userMessage = closeCodeMessage(code))
+            } else {
+                scheduleReconnect(request, attempt + 1)
             }
         }
 
         override fun onFailure(cause: Throwable) {
-            if (isCurrent()) {
+            if (!isCurrent()) return
+            activeSession = null
+            val request = currentRequest
+            if (request == null) {
                 state = RoomSessionState.Failed(message = cause.message ?: "Connection failed")
-                activeSession = null
+            } else {
+                scheduleReconnect(request, attempt + 1)
             }
         }
     }
+}
+
+private const val NORMAL_CLOSE_CODE = 1000
+private const val GOING_AWAY_CLOSE_CODE = 1001
+
+private fun closeCodeMessage(code: Int): String = when (code) {
+    NORMAL_CLOSE_CODE -> "You have been disconnected from the room."
+    GOING_AWAY_CLOSE_CODE -> "The server is going away."
+    else -> "Disconnected."
 }
 
 sealed interface RoomSessionState {
@@ -96,6 +145,7 @@ sealed interface RoomSessionState {
         val roomState: SessionRoomState? = null,
         val lastError: SessionError? = null,
     ) : RoomSessionState
-    data class Disconnected(val code: Int) : RoomSessionState
+    data class Reconnecting(val attempt: Int, val delayMs: Long) : RoomSessionState
+    data class Disconnected(val userMessage: String) : RoomSessionState
     data class Failed(val message: String) : RoomSessionState
 }

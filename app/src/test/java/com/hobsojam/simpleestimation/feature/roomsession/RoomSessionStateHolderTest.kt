@@ -1,5 +1,6 @@
 package com.hobsojam.simpleestimation.feature.roomsession
 
+import com.hobsojam.simpleestimation.domain.room.ReconnectScheduler
 import com.hobsojam.simpleestimation.domain.room.RoomSession
 import com.hobsojam.simpleestimation.domain.room.RoomSessionClient
 import com.hobsojam.simpleestimation.domain.room.RoomSessionListener
@@ -250,6 +251,175 @@ class RoomSessionStateHolderTest :
                 stateHolder.state shouldBe RoomSessionState.Connecting
             }
         }
+
+        describe("reconnect on failure") {
+            it("transitions to Reconnecting after onFailure") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                client.lastListener!!.onFailure(Exception("network error"))
+
+                stateHolder.state.shouldBeInstanceOf<RoomSessionState.Reconnecting>()
+            }
+
+            it("reconnect attempt 1 uses a 1-second delay") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                client.lastListener!!.onFailure(Exception("network error"))
+
+                scheduler.scheduledDelayMs shouldBe 1_000L
+            }
+
+            it("reconnect fires doConnect with the same request") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+                client.lastListener!!.onFailure(Exception("network error"))
+
+                scheduler.runPending()
+
+                stateHolder.state shouldBe RoomSessionState.Connecting
+                client.lastConnectUrl shouldBe
+                    "wss://example.com/ws?roomId=room-1&participantId=participant-1"
+            }
+
+            it("reconnect preserves the participantId from the original request") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+                client.lastListener!!.onFailure(Exception("network error"))
+
+                scheduler.runPending()
+
+                client.lastConnectUrl shouldBe
+                    "wss://example.com/ws?roomId=room-1&participantId=participant-1"
+            }
+
+            it("successive failures increase the backoff delay") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                client.lastListener!!.onFailure(Exception("error"))
+                val firstDelay = scheduler.scheduledDelayMs
+
+                scheduler.runPending()
+                client.lastListener!!.onFailure(Exception("error"))
+                val secondDelay = scheduler.scheduledDelayMs
+
+                secondDelay shouldBe (firstDelay!! * 2)
+            }
+
+            it("backoff delay is capped at 30 seconds after many failures") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+
+                repeat(10) {
+                    client.lastListener!!.onFailure(Exception("error"))
+                    scheduler.runPending()
+                }
+
+                scheduler.scheduledDelayMs shouldBe 30_000L
+            }
+
+            it("disconnect cancels a pending reconnect") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+                client.lastListener!!.onFailure(Exception("network error"))
+
+                stateHolder.disconnect()
+                scheduler.runPending()
+
+                stateHolder.state shouldBe RoomSessionState.Idle
+            }
+
+            it("connect cancels a pending reconnect and starts a fresh attempt 0") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+                client.lastListener!!.onFailure(Exception("network error"))
+
+                val newRequest = validRequest.copy(roomId = "room-2")
+                stateHolder.connect(newRequest)
+                scheduler.runPending()
+
+                stateHolder.state shouldBe RoomSessionState.Connecting
+                client.lastConnectUrl shouldBe
+                    "wss://example.com/ws?roomId=room-2&participantId=participant-1"
+            }
+        }
+
+        describe("reconnect on abnormal close") {
+            it("transitions to Reconnecting on a non-1000 close code") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                client.lastListener!!.onClosing(code = 1006, reason = "")
+
+                stateHolder.state.shouldBeInstanceOf<RoomSessionState.Reconnecting>()
+            }
+
+            it("transitions to Disconnected on a normal close (code 1000)") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                client.lastListener!!.onClosing(code = 1000, reason = "")
+
+                stateHolder.state.shouldBeInstanceOf<RoomSessionState.Disconnected>()
+            }
+
+            it("Disconnected state includes a user message for code 1000") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                client.lastListener!!.onClosing(code = 1000, reason = "")
+
+                val disconnected = stateHolder.state
+                    .shouldBeInstanceOf<RoomSessionState.Disconnected>()
+                disconnected.userMessage shouldBe "You have been disconnected from the room."
+            }
+
+            it("does not schedule a reconnect after a normal close") {
+                val client = FakeRoomSessionClient()
+                val scheduler = FakeReconnectScheduler()
+                val stateHolder = RoomSessionStateHolder(client, scheduler)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                client.lastListener!!.onClosing(code = 1000, reason = "")
+
+                scheduler.scheduledDelayMs shouldBe null
+            }
+        }
     })
 
 private const val PLANNING_POKER_STATE_JSON = """
@@ -295,5 +465,22 @@ private class FakeRoomSession : RoomSession {
 
     override fun close() {
         closeCount++
+    }
+}
+
+private class FakeReconnectScheduler : ReconnectScheduler {
+    var scheduledDelayMs: Long? = null
+    private var pendingTask: (() -> Unit)? = null
+
+    override fun schedule(delayMs: Long, task: () -> Unit): () -> Unit {
+        scheduledDelayMs = delayMs
+        pendingTask = task
+        return { pendingTask = null }
+    }
+
+    fun runPending() {
+        val task = pendingTask ?: return
+        pendingTask = null
+        task()
     }
 }
