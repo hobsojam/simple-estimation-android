@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.hobsojam.simpleestimation.data.room.HttpActiveRoomRepository
@@ -18,6 +19,10 @@ import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryScreen
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryStatus
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryUiState
 import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomDiscoveryViewModel
+import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinStatus
+import com.hobsojam.simpleestimation.feature.roomsession.RoomSessionScreen
+import com.hobsojam.simpleestimation.feature.roomsession.RoomSessionState
+import com.hobsojam.simpleestimation.feature.roomsession.RoomSessionViewModel
 
 class MainActivity : ComponentActivity() {
     private val roomDiscoveryViewModel: RoomDiscoveryViewModel by viewModels {
@@ -25,6 +30,10 @@ class MainActivity : ComponentActivity() {
             repositoryFactory = { HttpActiveRoomRepository() },
             configClientFactory = { JavaNetServerConfigClient() },
         )
+    }
+
+    private val roomSessionViewModel: RoomSessionViewModel by viewModels {
+        RoomSessionViewModel.Factory()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +44,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             SimpleEstimationApp(
                 uiState = roomDiscoveryViewModel.uiState,
+                sessionState = roomSessionViewModel.sessionState,
+                displayName = roomSessionViewModel.displayName,
                 onServerUrlChanged = roomDiscoveryViewModel::updateServerUrl,
                 onLoadRooms = roomDiscoveryViewModel::loadActiveRooms,
                 onManualRoomInputChanged = roomDiscoveryViewModel::updateManualRoomInput,
@@ -43,6 +54,9 @@ class MainActivity : ComponentActivity() {
                 onAccessPinChanged = roomDiscoveryViewModel::updateAccessPin,
                 onCancelJoin = roomDiscoveryViewModel::cancelJoin,
                 onSubmitJoin = roomDiscoveryViewModel::submitJoin,
+                onSessionConnect = roomSessionViewModel::connect,
+                onVote = roomSessionViewModel::sendVote,
+                onLeaveSession = roomSessionViewModel::disconnect,
             )
         }
     }
@@ -65,6 +79,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SimpleEstimationApp(
     uiState: RoomDiscoveryUiState,
+    sessionState: RoomSessionState,
+    displayName: String?,
     onServerUrlChanged: (String) -> Unit,
     onLoadRooms: () -> Unit,
     onManualRoomInputChanged: (String) -> Unit,
@@ -73,24 +89,43 @@ fun SimpleEstimationApp(
     onAccessPinChanged: (String) -> Unit,
     onCancelJoin: () -> Unit,
     onSubmitJoin: () -> Unit,
+    onSessionConnect: (com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinRequest) -> Unit,
+    onVote: (String) -> Boolean,
+    onLeaveSession: () -> Unit,
 ) {
+    LaunchedEffect(uiState.join.status) {
+        val status = uiState.join.status
+        if (status is RoomJoinStatus.ReadyToConnect) {
+            onSessionConnect(status.request)
+        }
+    }
+
     MaterialTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,
         ) {
-            RoomDiscoveryScreen(
-                uiState = uiState,
-                onServerUrlChanged = onServerUrlChanged,
-                onLoadRooms = onLoadRooms,
-                onManualRoomInputChanged = onManualRoomInputChanged,
-                onRoomSelected = onRoomSelected,
-                onDisplayNameChanged = onDisplayNameChanged,
-                onAccessPinChanged = onAccessPinChanged,
-                onCancelJoin = onCancelJoin,
-                onSubmitJoin = onSubmitJoin,
-                modifier = Modifier,
-            )
+            if (sessionState is RoomSessionState.Idle) {
+                RoomDiscoveryScreen(
+                    uiState = uiState,
+                    onServerUrlChanged = onServerUrlChanged,
+                    onLoadRooms = onLoadRooms,
+                    onManualRoomInputChanged = onManualRoomInputChanged,
+                    onRoomSelected = onRoomSelected,
+                    onDisplayNameChanged = onDisplayNameChanged,
+                    onAccessPinChanged = onAccessPinChanged,
+                    onCancelJoin = onCancelJoin,
+                    onSubmitJoin = onSubmitJoin,
+                    modifier = Modifier,
+                )
+            } else {
+                RoomSessionScreen(
+                    sessionState = sessionState,
+                    displayName = displayName,
+                    onVote = onVote,
+                    onLeave = onLeaveSession,
+                )
+            }
         }
     }
 }
@@ -103,6 +138,8 @@ private fun SimpleEstimationAppPreview() {
             serverUrl = "https://example.com",
             status = RoomDiscoveryStatus.Idle,
         ),
+        sessionState = RoomSessionState.Idle,
+        displayName = null,
         onServerUrlChanged = {},
         onLoadRooms = {},
         onManualRoomInputChanged = {},
@@ -111,5 +148,8 @@ private fun SimpleEstimationAppPreview() {
         onAccessPinChanged = {},
         onCancelJoin = {},
         onSubmitJoin = {},
+        onSessionConnect = {},
+        onVote = { false },
+        onLeaveSession = {},
     )
 }

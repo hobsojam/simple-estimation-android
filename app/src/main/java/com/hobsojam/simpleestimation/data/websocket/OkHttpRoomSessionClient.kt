@@ -73,4 +73,8 @@ private class OkHttpRoomSession(private val webSocket: WebSocket) : RoomSession 
     override fun close() {
         webSocket.close(NORMAL_CLOSURE_CODE, null)
     }
+
+    override fun send(text: String) {
+        webSocket.send(text)
+    }
 }

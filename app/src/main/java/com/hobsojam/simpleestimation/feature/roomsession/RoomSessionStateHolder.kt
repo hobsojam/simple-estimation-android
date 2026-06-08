@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import com.hobsojam.simpleestimation.data.websocket.ParsedRoomMessage
 import com.hobsojam.simpleestimation.data.websocket.RoomJoinMessageBuilder
 import com.hobsojam.simpleestimation.data.websocket.RoomSessionMessageParser
+import com.hobsojam.simpleestimation.data.websocket.VoteMessageBuilder
 import com.hobsojam.simpleestimation.domain.room.ReconnectScheduler
 import com.hobsojam.simpleestimation.domain.room.RoomSession
 import com.hobsojam.simpleestimation.domain.room.RoomSessionClient
@@ -39,11 +40,22 @@ class RoomSessionStateHolder(
         doConnect(request, attempt = 0)
     }
 
+    val displayName: String?
+        get() = currentRequest?.displayName
+
     fun disconnect() {
         cancelScheduledReconnect()
         currentRequest = null
         closeActiveSession()
         state = RoomSessionState.Idle
+    }
+
+    fun sendVote(vote: String): Boolean {
+        if (vote !in VALID_PLANNING_POKER_VOTES) return false
+        return activeSession?.let { session ->
+            session.send(VoteMessageBuilder.build(vote))
+            true
+        } ?: false
     }
 
     private fun doConnect(request: RoomJoinRequest, attempt: Int) {
@@ -128,6 +140,9 @@ class RoomSessionStateHolder(
         }
     }
 }
+
+private val VALID_PLANNING_POKER_VOTES =
+    setOf("1", "2", "3", "5", "8", "13", "21", "?", "∞", "☕")
 
 private const val NORMAL_CLOSE_CODE = 1000
 private const val GOING_AWAY_CLOSE_CODE = 1001
