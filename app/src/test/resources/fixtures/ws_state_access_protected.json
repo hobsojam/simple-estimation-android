@@ -1,0 +1,14 @@
+{
+  "type": "state",
+  "room": {
+    "id": "0f48bd1c-b892-4b62-97ea-6fbe4df7198d",
+    "type": "planning-poker",
+    "name": "Sprint planning",
+    "accessRequired": true,
+    "pinProtected": true,
+    "facilitatorId": null,
+    "revealed": false,
+    "participants": [],
+    "items": []
+  }
+}

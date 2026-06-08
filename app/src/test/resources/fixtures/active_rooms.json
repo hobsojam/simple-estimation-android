@@ -1,0 +1,26 @@
+[
+  {
+    "id": "0f48bd1c-b892-4b62-97ea-6fbe4df7198d",
+    "type": "planning-poker",
+    "name": "Sprint planning",
+    "participantCount": 3,
+    "pinProtected": true,
+    "accessPinProtected": false
+  },
+  {
+    "id": "1a2b3c4d-0000-0000-0000-000000000001",
+    "type": "bucket",
+    "name": "Backlog sizing",
+    "participantCount": 2,
+    "pinProtected": false,
+    "accessPinProtected": false
+  },
+  {
+    "id": "1a2b3c4d-0000-0000-0000-000000000002",
+    "type": "relative",
+    "name": null,
+    "participantCount": 1,
+    "pinProtected": false,
+    "accessPinProtected": true
+  }
+]

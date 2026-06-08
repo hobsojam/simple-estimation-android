@@ -1,0 +1,5 @@
+{
+  "type": "error",
+  "code": "join_before_voting",
+  "message": "The participant must join before voting"
+}

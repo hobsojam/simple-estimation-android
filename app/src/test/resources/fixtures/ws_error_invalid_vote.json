@@ -1,0 +1,5 @@
+{
+  "type": "error",
+  "code": "invalid_vote",
+  "message": "The vote is not an allowed vote value"
+}

@@ -43,8 +43,21 @@ android {
     }
 
     testOptions {
-        unitTests.all {
-            it.useJUnitPlatform()
+        unitTests.all { test ->
+            test.useJUnitPlatform()
+            // Exclude integration tests from the standard unit test run.
+            // Run integration tests with: ./gradlew testDebugUnitTest
+            //   -PrunIntegrationTests -PintegrationServerUrl=http://10.0.2.2:3000
+            if (project.findProperty("runIntegrationTests") == null) {
+                test.systemProperty("kotest.tags.exclude", "Integration")
+            } else {
+                test.systemProperty("kotest.tags.include", "Integration")
+                test.systemProperty(
+                    "integration.serverUrl",
+                    project.findProperty("integrationServerUrl") as? String
+                        ?: "http://10.0.2.2:3000",
+                )
+            }
         }
     }
 }
