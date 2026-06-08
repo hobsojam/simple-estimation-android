@@ -3,6 +3,7 @@ package com.hobsojam.simpleestimation.feature.roomsession
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.hobsojam.simpleestimation.data.websocket.MoveItemMessageBuilder
 import com.hobsojam.simpleestimation.data.websocket.ParsedRoomMessage
 import com.hobsojam.simpleestimation.data.websocket.RoomJoinMessageBuilder
 import com.hobsojam.simpleestimation.data.websocket.RoomSessionMessageParser
@@ -51,6 +52,16 @@ class RoomSessionStateHolder(
         currentRequest = null
         closeActiveSession()
         state = RoomSessionState.Idle
+    }
+
+    fun sendMoveItem(itemId: String, position: String?): Boolean {
+        val isValid =
+            itemId.isNotBlank() && (position == null || position in VALID_MOVE_ITEM_POSITIONS)
+        if (!isValid) return false
+        return activeSession?.let { session ->
+            session.send(MoveItemMessageBuilder.build(itemId, position))
+            true
+        } ?: false
     }
 
     fun sendVote(vote: String): Boolean {
@@ -149,6 +160,9 @@ class RoomSessionStateHolder(
 
 private val VALID_PLANNING_POKER_VOTES =
     setOf("1", "2", "3", "5", "8", "13", "21", "?", "∞", "☕")
+
+private val VALID_MOVE_ITEM_POSITIONS =
+    setOf("XS", "S", "M", "L", "XL", "1", "2", "3", "5", "8", "13", "21")
 
 private const val NORMAL_CLOSE_CODE = 1000
 private const val GOING_AWAY_CLOSE_CODE = 1001

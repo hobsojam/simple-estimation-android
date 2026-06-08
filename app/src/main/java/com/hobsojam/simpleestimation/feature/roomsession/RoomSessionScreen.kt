@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hobsojam.simpleestimation.domain.room.PokerItemStatus
 import com.hobsojam.simpleestimation.domain.room.SessionRoomState
+import com.hobsojam.simpleestimation.feature.itemplacement.ItemPlacementScreen
+import com.hobsojam.simpleestimation.feature.itemplacement.toUiState
 import com.hobsojam.simpleestimation.feature.planningpoker.PlanningPokerScreen
 import com.hobsojam.simpleestimation.feature.planningpoker.toUiState
 
@@ -29,6 +31,7 @@ fun RoomSessionScreen(
     sessionState: RoomSessionState,
     displayName: String?,
     onVote: (String) -> Boolean,
+    onMoveItem: (String, String?) -> Boolean,
     onLeave: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -67,6 +70,7 @@ fun RoomSessionScreen(
                 sessionState = sessionState,
                 displayName = displayName,
                 onVote = onVote,
+                onMoveItem = onMoveItem,
                 onLeave = onLeave,
             )
         }
@@ -78,6 +82,7 @@ private fun ActiveRoomContent(
     sessionState: RoomSessionState.Active,
     displayName: String?,
     onVote: (String) -> Boolean,
+    onMoveItem: (String, String?) -> Boolean,
     onLeave: () -> Unit,
 ) {
     when (val roomState = sessionState.roomState) {
@@ -103,6 +108,48 @@ private fun ActiveRoomContent(
                 ),
                 onVoteSelected = { vote ->
                     if (onVote(vote)) selectedVote = vote
+                },
+                onLeave = onLeave,
+            )
+        }
+
+        is SessionRoomState.Bucket -> {
+            var selectedItemId by remember { mutableStateOf<String?>(null) }
+            val lastError = sessionState.lastError
+            LaunchedEffect(lastError) {
+                if (lastError != null) selectedItemId = null
+            }
+            ItemPlacementScreen(
+                state = roomState.toUiState(
+                    displayName = displayName ?: "",
+                    selectedItemId = selectedItemId,
+                    serverError = lastError?.userMessage,
+                ),
+                onItemSelected = { selectedItemId = it },
+                onMoveItem = { itemId, position ->
+                    onMoveItem(itemId, position)
+                    selectedItemId = null
+                },
+                onLeave = onLeave,
+            )
+        }
+
+        is SessionRoomState.Relative -> {
+            var selectedItemId by remember { mutableStateOf<String?>(null) }
+            val lastError = sessionState.lastError
+            LaunchedEffect(lastError) {
+                if (lastError != null) selectedItemId = null
+            }
+            ItemPlacementScreen(
+                state = roomState.toUiState(
+                    displayName = displayName ?: "",
+                    selectedItemId = selectedItemId,
+                    serverError = lastError?.userMessage,
+                ),
+                onItemSelected = { selectedItemId = it },
+                onMoveItem = { itemId, position ->
+                    onMoveItem(itemId, position)
+                    selectedItemId = null
                 },
                 onLeave = onLeave,
             )

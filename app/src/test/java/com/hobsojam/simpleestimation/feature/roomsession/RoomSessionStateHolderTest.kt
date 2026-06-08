@@ -302,6 +302,66 @@ class RoomSessionStateHolderTest :
             }
         }
 
+        describe("sendMoveItem") {
+            it("sends a move_item message with a non-null position when session is active") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                val sent = stateHolder.sendMoveItem(itemId = "item-1", position = "M")
+
+                sent shouldBe true
+                client.lastSession!!.sentMessages shouldBe
+                    listOf("""{"type":"move_item","itemId":"item-1","position":"M"}""")
+            }
+
+            it("sends a move_item message with null position to unplace an item") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                val sent = stateHolder.sendMoveItem(itemId = "item-1", position = null)
+
+                sent shouldBe true
+                client.lastSession!!.sentMessages shouldBe
+                    listOf("""{"type":"move_item","itemId":"item-1","position":null}""")
+            }
+
+            it("returns false and does not send for a blank itemId") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                val sent = stateHolder.sendMoveItem(itemId = "  ", position = "M")
+
+                sent shouldBe false
+                client.lastSession!!.sentMessages shouldBe emptyList()
+            }
+
+            it("returns false and does not send for an invalid position") {
+                val client = FakeRoomSessionClient()
+                val stateHolder = RoomSessionStateHolder(client)
+                stateHolder.connect(validRequest)
+                client.lastListener!!.onOpen()
+
+                val sent = stateHolder.sendMoveItem(itemId = "item-1", position = "INVALID")
+
+                sent shouldBe false
+                client.lastSession!!.sentMessages shouldBe emptyList()
+            }
+
+            it("returns false when there is no active session") {
+                val stateHolder = RoomSessionStateHolder(FakeRoomSessionClient())
+
+                val sent = stateHolder.sendMoveItem(itemId = "item-1", position = "M")
+
+                sent shouldBe false
+            }
+        }
+
         describe("reconnect on failure") {
             it("transitions to Reconnecting after onFailure") {
                 val client = FakeRoomSessionClient()

@@ -27,6 +27,9 @@ class RoomSessionViewModel(
 
     fun sendVote(vote: String): Boolean = stateHolder.sendVote(vote)
 
+    fun sendMoveItem(itemId: String, position: String?): Boolean =
+        stateHolder.sendMoveItem(itemId, position)
+
     override fun onCleared() {
         stateHolder.disconnect()
     }
