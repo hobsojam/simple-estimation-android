@@ -46,8 +46,9 @@ android {
         unitTests.all { test ->
             test.useJUnitPlatform()
             // Exclude integration tests from the standard unit test run.
-            // Run integration tests with: ./gradlew testDebugUnitTest
-            //   -PrunIntegrationTests -PintegrationServerUrl=http://10.0.2.2:3000
+            // Run integration tests with: ./gradlew testDebugUnitTest -PrunIntegrationTests
+            // Default server URL is localhost:3000 (host JVM). For emulator runs add:
+            //   -PintegrationServerUrl=http://10.0.2.2:3000
             if (project.findProperty("runIntegrationTests") == null) {
                 test.systemProperty("kotest.tags.exclude", "Integration")
             } else {
@@ -55,7 +56,7 @@ android {
                 test.systemProperty(
                     "integration.serverUrl",
                     project.findProperty("integrationServerUrl") as? String
-                        ?: "http://10.0.2.2:3000",
+                        ?: "http://localhost:3000",
                 )
             }
         }
