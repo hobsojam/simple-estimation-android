@@ -1,0 +1,25 @@
+{
+  "type": "state",
+  "room": {
+    "id": "0f48bd1c-b892-4b62-97ea-6fbe4df7198d",
+    "type": "planning-poker",
+    "name": "Sprint planning",
+    "pinProtected": true,
+    "facilitatorId": "participant-1",
+    "revealed": false,
+    "timer": {
+      "endsAt": null,
+      "durationSeconds": null,
+      "serverNow": 1843239150000
+    },
+    "participants": [
+      { "id": "participant-1", "name": "Alice", "voted": true, "vote": null },
+      { "id": "participant-2", "name": "Bob", "voted": false, "vote": null }
+    ],
+    "items": [
+      { "id": "item-1", "label": "Checkout flow", "status": "active", "estimate": null },
+      { "id": "item-2", "label": "User profile page", "status": "pending", "estimate": null },
+      { "id": "item-3", "label": "Login screen", "status": "done", "estimate": "5" }
+    ]
+  }
+}

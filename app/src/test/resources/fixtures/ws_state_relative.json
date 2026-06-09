@@ -1,0 +1,19 @@
+{
+  "type": "state",
+  "room": {
+    "id": "1a2b3c4d-0000-0000-0000-000000000002",
+    "type": "relative",
+    "name": null,
+    "pinProtected": false,
+    "facilitatorId": null,
+    "revealed": false,
+    "participants": [
+      { "id": "participant-1", "name": "Alice", "voted": false, "vote": null }
+    ],
+    "items": [
+      { "id": "item-1", "label": "API integration", "position": "8" },
+      { "id": "item-2", "label": "Unit tests", "position": null },
+      { "id": "item-3", "label": "Docs update", "position": "2" }
+    ]
+  }
+}

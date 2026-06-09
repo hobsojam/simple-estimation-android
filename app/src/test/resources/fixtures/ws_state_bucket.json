@@ -1,0 +1,20 @@
+{
+  "type": "state",
+  "room": {
+    "id": "1a2b3c4d-0000-0000-0000-000000000001",
+    "type": "bucket",
+    "name": "Backlog sizing",
+    "pinProtected": false,
+    "facilitatorId": null,
+    "revealed": false,
+    "participants": [
+      { "id": "participant-1", "name": "Alice", "voted": false, "vote": null },
+      { "id": "participant-2", "name": "Bob", "voted": false, "vote": null }
+    ],
+    "items": [
+      { "id": "item-1", "label": "Onboarding flow", "position": null },
+      { "id": "item-2", "label": "Search feature", "position": "M" },
+      { "id": "item-3", "label": "Dark mode", "position": "XS" }
+    ]
+  }
+}
