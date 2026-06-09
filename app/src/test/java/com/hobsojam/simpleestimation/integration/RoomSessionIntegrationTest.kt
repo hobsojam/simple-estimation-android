@@ -107,8 +107,9 @@ class RoomSessionIntegrationTest :
             val roomId = createRoom("planning-poker")
             try {
                 val participantId = UUID.randomUUID().toString()
-                val latch = CountDownLatch(2) // initial state + post-vote state
-                val messages = mutableListOf<String>()
+                val readyLatch = CountDownLatch(1)
+                val votedLatch = CountDownLatch(1)
+                val votedState = AtomicReference<SessionRoomState.PlanningPoker?>()
 
                 val wsUrl = "${IntegrationServer.wsBaseUrl}/ws?roomId=$roomId" +
                     "&participantId=$participantId"
@@ -123,25 +124,30 @@ class RoomSessionIntegrationTest :
                     listener = object : RoomSessionListener {
                         override fun onOpen() {}
                         override fun onMessage(text: String) {
-                            synchronized(messages) { messages.add(text) }
-                            latch.countDown()
+                            val parsed = parser.parse(text).getOrNull()
+                            if (parsed is ParsedRoomMessage.RoomState) {
+                                readyLatch.countDown()
+                                val poker = parsed.state as? SessionRoomState.PlanningPoker
+                                    ?: return
+                                if (poker.participants.any { it.id == participantId && it.voted }) {
+                                    votedState.set(poker)
+                                    votedLatch.countDown()
+                                }
+                            }
                         }
                         override fun onClosing(code: Int, reason: String) {}
                         override fun onFailure(cause: Throwable) {
-                            latch.countDown()
+                            readyLatch.countDown()
+                            votedLatch.countDown()
                         }
                     },
                 )
 
-                // Wait for initial state, then vote
-                Thread.sleep(500)
+                readyLatch.await(10, TimeUnit.SECONDS) shouldBe true
                 session.send(VoteMessageBuilder.build("5"))
 
-                latch.await(10, TimeUnit.SECONDS) shouldBe true
-                // The second message should be a state update reflecting the vote
-                val lastMsg = parser.parse(messages.last()).getOrThrow()
-                val state = lastMsg.shouldBeInstanceOf<ParsedRoomMessage.RoomState>()
-                    .state.shouldBeInstanceOf<SessionRoomState.PlanningPoker>()
+                votedLatch.await(10, TimeUnit.SECONDS) shouldBe true
+                val state = checkNotNull(votedState.get()) { "No post-vote state received" }
                 val participant = state.participants.find { it.id == participantId }
                 checkNotNull(participant) { "Participant not found in state" }
                 participant.voted shouldBe true
