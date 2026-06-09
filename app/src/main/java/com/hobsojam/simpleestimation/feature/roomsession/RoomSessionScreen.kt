@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,6 +24,7 @@ import com.hobsojam.simpleestimation.feature.itemplacement.ItemPlacementScreen
 import com.hobsojam.simpleestimation.feature.itemplacement.toUiState
 import com.hobsojam.simpleestimation.feature.planningpoker.PlanningPokerScreen
 import com.hobsojam.simpleestimation.feature.planningpoker.toUiState
+import com.hobsojam.simpleestimation.ui.theme.components.SecondaryButton
 
 @Composable
 fun RoomSessionScreen(
@@ -178,9 +178,7 @@ private fun SessionStatusContent(message: String, showProgress: Boolean, onLeave
                 CircularProgressIndicator()
             }
             Text(text = message, style = MaterialTheme.typography.bodyLarge)
-            Button(onClick = onLeave) {
-                Text("Leave")
-            }
+            SecondaryButton(text = "Leave", onClick = onLeave)
         }
     }
 }

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,15 +20,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hobsojam.simpleestimation.domain.room.ActiveRoom
 import com.hobsojam.simpleestimation.domain.room.EstimationRoomType
+import com.hobsojam.simpleestimation.ui.theme.SimpleEstimationTheme
+import com.hobsojam.simpleestimation.ui.theme.components.PrimaryButton
 import java.time.Instant
 
 @Composable
@@ -95,13 +94,11 @@ private fun RoomDiscoveryContent(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             modifier = Modifier.fillMaxWidth(),
         )
-        Button(
+        PrimaryButton(
+            text = loadButtonText(uiState.status),
             onClick = onLoadRooms,
             enabled = uiState.status !is RoomDiscoveryStatus.Loading,
-            modifier = Modifier.semantics { role = Role.Button },
-        ) {
-            Text(loadButtonText(uiState.status))
-        }
+        )
         RoomJoinPanel(
             joinState = uiState.join,
             onManualRoomInputChanged = onManualRoomInputChanged,
@@ -228,14 +225,11 @@ private fun RoomCard(room: ActiveRoom, onRoomSelected: (ActiveRoom) -> Unit) {
             if (room.pinProtected) {
                 Text("Facilitator PIN protected")
             }
-            Button(
+            PrimaryButton(
+                text = "Select room",
                 onClick = { onRoomSelected(room) },
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .semantics { role = Role.Button },
-            ) {
-                Text("Select room")
-            }
+                modifier = Modifier.padding(top = 12.dp),
+            )
         }
     }
 }
@@ -243,7 +237,7 @@ private fun RoomCard(room: ActiveRoom, onRoomSelected: (ActiveRoom) -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun RoomDiscoveryContentPreview() {
-    MaterialTheme {
+    SimpleEstimationTheme {
         RoomDiscoveryContent(
             uiState = RoomDiscoveryUiState(
                 serverUrl = "https://example.com",
