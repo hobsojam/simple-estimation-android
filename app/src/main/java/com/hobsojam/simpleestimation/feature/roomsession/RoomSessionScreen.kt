@@ -160,12 +160,6 @@ private fun ActiveRoomContent(
             showProgress = false,
             onLeave = onLeave,
         )
-
-        else -> SessionStatusContent(
-            message = "This room type is not supported in this version.",
-            showProgress = false,
-            onLeave = onLeave,
-        )
     }
 }
 
