@@ -11,9 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hobsojam.simpleestimation.ui.theme.semanticColors
 
-/* Which semantic triad a Banner uses. */
-enum class BannerTone { INFO, SUCCESS, WARNING, DANGER }
-
 /*
  * Banner — a full-width inline message strip (active item, errors, demo/timer
  * notices). Demonstrates reading the custom `MaterialTheme.semanticColors`

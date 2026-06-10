@@ -55,7 +55,8 @@ fun JoinPlanningPokerScreen(
             enabled = participantName.isNotBlank(),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp),
+                .padding(top = 16.dp)
+                .semantics { contentDescription = "Join room" },
         )
     }
 }
