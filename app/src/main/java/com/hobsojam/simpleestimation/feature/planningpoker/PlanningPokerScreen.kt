@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.hobsojam.simpleestimation.ui.theme.SimpleEstimationTheme
 
 private const val SAMPLE_HIDDEN_VOTED_COUNT = 2
 private const val SAMPLE_REVEALED_VOTED_COUNT = 3
@@ -119,7 +120,7 @@ private fun samplePlanningPokerState(
 @Preview(showBackground = true)
 @Composable
 private fun PlanningPokerParticipantRoutePreview() {
-    MaterialTheme {
+    SimpleEstimationTheme {
         PlanningPokerParticipantRoute()
     }
 }

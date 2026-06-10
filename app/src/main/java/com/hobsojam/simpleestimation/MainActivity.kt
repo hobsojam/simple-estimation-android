@@ -23,6 +23,7 @@ import com.hobsojam.simpleestimation.feature.roomdiscovery.RoomJoinStatus
 import com.hobsojam.simpleestimation.feature.roomsession.RoomSessionScreen
 import com.hobsojam.simpleestimation.feature.roomsession.RoomSessionState
 import com.hobsojam.simpleestimation.feature.roomsession.RoomSessionViewModel
+import com.hobsojam.simpleestimation.ui.theme.SimpleEstimationTheme
 
 class MainActivity : ComponentActivity() {
     private val roomDiscoveryViewModel: RoomDiscoveryViewModel by viewModels {
@@ -102,7 +103,7 @@ fun SimpleEstimationApp(
         }
     }
 
-    MaterialTheme {
+    SimpleEstimationTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,

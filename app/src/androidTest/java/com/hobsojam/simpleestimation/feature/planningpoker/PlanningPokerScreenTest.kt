@@ -87,7 +87,7 @@ class PlanningPokerScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Timer: 1:30").assertIsDisplayed()
+        composeRule.onNodeWithText("Timer: 1:30").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Revealed votes").assertIsDisplayed()
         composeRule.onNodeWithText("Avery").assertIsDisplayed()
         composeRule.onNodeWithText("13 · Outlier").assertIsDisplayed()
