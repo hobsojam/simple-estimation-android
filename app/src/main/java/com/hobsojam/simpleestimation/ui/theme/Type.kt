@@ -24,6 +24,12 @@ import androidx.compose.ui.unit.sp
  *   badge 0.72rem   -> labelSmall
  */
 val SimpleEstimationTypography = Typography(
+    headlineMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+    ),
     headlineSmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.SemiBold,
