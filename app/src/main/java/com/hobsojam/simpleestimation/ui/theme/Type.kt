@@ -82,6 +82,17 @@ val SimpleEstimationTypography = Typography(
 )
 
 /*
+ * Planning-poker card face value. 19sp keeps single/double-digit numbers and
+ * emoji (?, ∞, ☕) legible inside the 54×72dp card tile.
+ */
+val CardValueStyle = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 19.sp,
+    lineHeight = 24.sp,
+)
+
+/*
  * The one monospace moment: room IDs and codes. Use this style explicitly,
  * e.g. Text("Room: a1b2c3d4", style = MonospaceMeta).
  */

@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -13,10 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.hobsojam.simpleestimation.ui.theme.CardValueStyle
 
 /*
  * EstimationCard — the planning-poker card face, the product's one tactile,
@@ -42,7 +40,7 @@ fun EstimationCard(
 
     Surface(
         modifier = modifier.size(width = 54.dp, height = 72.dp),
-        shape = RoundedCornerShape(6.dp),
+        shape = MaterialTheme.shapes.medium,
         color = background,
         border = BorderStroke(2.dp, border),
     ) {
@@ -59,8 +57,7 @@ fun EstimationCard(
             Text(
                 text = value,
                 color = content,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 19.sp,
+                style = CardValueStyle,
                 textAlign = TextAlign.Center,
             )
         }
