@@ -43,23 +43,25 @@ class MainActivity : ComponentActivity() {
         openRoomLinkFromIntent(intent)
 
         setContent {
-            SimpleEstimationApp(
-                uiState = roomDiscoveryViewModel.uiState,
-                sessionState = roomSessionViewModel.sessionState,
-                displayName = roomSessionViewModel.displayName,
-                onServerUrlChanged = roomDiscoveryViewModel::updateServerUrl,
-                onLoadRooms = roomDiscoveryViewModel::loadActiveRooms,
-                onManualRoomInputChanged = roomDiscoveryViewModel::updateManualRoomInput,
-                onRoomSelected = roomDiscoveryViewModel::selectRoom,
-                onDisplayNameChanged = roomDiscoveryViewModel::updateDisplayName,
-                onAccessPinChanged = roomDiscoveryViewModel::updateAccessPin,
-                onCancelJoin = roomDiscoveryViewModel::cancelJoin,
-                onSubmitJoin = roomDiscoveryViewModel::submitJoin,
-                onSessionConnect = roomSessionViewModel::connect,
-                onVote = roomSessionViewModel::sendVote,
-                onMoveItem = roomSessionViewModel::sendMoveItem,
-                onLeaveSession = roomSessionViewModel::disconnect,
-            )
+            SimpleEstimationTheme {
+                SimpleEstimationApp(
+                    uiState = roomDiscoveryViewModel.uiState,
+                    sessionState = roomSessionViewModel.sessionState,
+                    displayName = roomSessionViewModel.displayName,
+                    onServerUrlChanged = roomDiscoveryViewModel::updateServerUrl,
+                    onLoadRooms = roomDiscoveryViewModel::loadActiveRooms,
+                    onManualRoomInputChanged = roomDiscoveryViewModel::updateManualRoomInput,
+                    onRoomSelected = roomDiscoveryViewModel::selectRoom,
+                    onDisplayNameChanged = roomDiscoveryViewModel::updateDisplayName,
+                    onAccessPinChanged = roomDiscoveryViewModel::updateAccessPin,
+                    onCancelJoin = roomDiscoveryViewModel::cancelJoin,
+                    onSubmitJoin = roomDiscoveryViewModel::submitJoin,
+                    onSessionConnect = roomSessionViewModel::connect,
+                    onVote = roomSessionViewModel::sendVote,
+                    onMoveItem = roomSessionViewModel::sendMoveItem,
+                    onLeaveSession = roomSessionViewModel::disconnect,
+                )
+            }
         }
     }
 
@@ -103,33 +105,31 @@ fun SimpleEstimationApp(
         }
     }
 
-    SimpleEstimationTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
-        ) {
-            if (sessionState is RoomSessionState.Idle) {
-                RoomDiscoveryScreen(
-                    uiState = uiState,
-                    onServerUrlChanged = onServerUrlChanged,
-                    onLoadRooms = onLoadRooms,
-                    onManualRoomInputChanged = onManualRoomInputChanged,
-                    onRoomSelected = onRoomSelected,
-                    onDisplayNameChanged = onDisplayNameChanged,
-                    onAccessPinChanged = onAccessPinChanged,
-                    onCancelJoin = onCancelJoin,
-                    onSubmitJoin = onSubmitJoin,
-                    modifier = Modifier,
-                )
-            } else {
-                RoomSessionScreen(
-                    sessionState = sessionState,
-                    displayName = displayName,
-                    onVote = onVote,
-                    onMoveItem = onMoveItem,
-                    onLeave = onLeaveSession,
-                )
-            }
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        if (sessionState is RoomSessionState.Idle) {
+            RoomDiscoveryScreen(
+                uiState = uiState,
+                onServerUrlChanged = onServerUrlChanged,
+                onLoadRooms = onLoadRooms,
+                onManualRoomInputChanged = onManualRoomInputChanged,
+                onRoomSelected = onRoomSelected,
+                onDisplayNameChanged = onDisplayNameChanged,
+                onAccessPinChanged = onAccessPinChanged,
+                onCancelJoin = onCancelJoin,
+                onSubmitJoin = onSubmitJoin,
+                modifier = Modifier,
+            )
+        } else {
+            RoomSessionScreen(
+                sessionState = sessionState,
+                displayName = displayName,
+                onVote = onVote,
+                onMoveItem = onMoveItem,
+                onLeave = onLeaveSession,
+            )
         }
     }
 }
@@ -137,24 +137,26 @@ fun SimpleEstimationApp(
 @Preview(showBackground = true)
 @Composable
 private fun SimpleEstimationAppPreview() {
-    SimpleEstimationApp(
-        uiState = RoomDiscoveryUiState(
-            serverUrl = "https://example.com",
-            status = RoomDiscoveryStatus.Idle,
-        ),
-        sessionState = RoomSessionState.Idle,
-        displayName = null,
-        onServerUrlChanged = {},
-        onLoadRooms = {},
-        onManualRoomInputChanged = {},
-        onRoomSelected = {},
-        onDisplayNameChanged = {},
-        onAccessPinChanged = {},
-        onCancelJoin = {},
-        onSubmitJoin = {},
-        onSessionConnect = {},
-        onVote = { false },
-        onMoveItem = { _, _ -> false },
-        onLeaveSession = {},
-    )
+    SimpleEstimationTheme {
+        SimpleEstimationApp(
+            uiState = RoomDiscoveryUiState(
+                serverUrl = "https://example.com",
+                status = RoomDiscoveryStatus.Idle,
+            ),
+            sessionState = RoomSessionState.Idle,
+            displayName = null,
+            onServerUrlChanged = {},
+            onLoadRooms = {},
+            onManualRoomInputChanged = {},
+            onRoomSelected = {},
+            onDisplayNameChanged = {},
+            onAccessPinChanged = {},
+            onCancelJoin = {},
+            onSubmitJoin = {},
+            onSessionConnect = {},
+            onVote = { false },
+            onMoveItem = { _, _ -> false },
+            onLeaveSession = {},
+        )
+    }
 }
