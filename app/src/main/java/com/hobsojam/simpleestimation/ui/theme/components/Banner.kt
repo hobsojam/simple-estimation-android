@@ -18,12 +18,20 @@ import com.hobsojam.simpleestimation.ui.theme.semanticColors
  */
 @Composable
 fun Banner(text: String, tone: BannerTone = BannerTone.INFO, modifier: Modifier = Modifier) {
-    val s = MaterialTheme.semanticColors
+    val colors = MaterialTheme.semanticColors
     val (surface, border, content) = when (tone) {
-        BannerTone.INFO -> Triple(s.infoSurface, s.infoBorder, s.infoContent)
-        BannerTone.SUCCESS -> Triple(s.successSurface, s.successBorder, s.successContent)
-        BannerTone.WARNING -> Triple(s.warningSurface, s.warningBorder, s.warningContent)
-        BannerTone.DANGER -> Triple(s.dangerSurface, s.dangerBorder, s.dangerContent)
+        BannerTone.INFO -> Triple(colors.infoSurface, colors.infoBorder, colors.infoContent)
+        BannerTone.SUCCESS -> Triple(
+            colors.successSurface,
+            colors.successBorder,
+            colors.successContent,
+        )
+        BannerTone.WARNING -> Triple(
+            colors.warningSurface,
+            colors.warningBorder,
+            colors.warningContent,
+        )
+        BannerTone.DANGER -> Triple(colors.dangerSurface, colors.dangerBorder, colors.dangerContent)
     }
 
     Surface(

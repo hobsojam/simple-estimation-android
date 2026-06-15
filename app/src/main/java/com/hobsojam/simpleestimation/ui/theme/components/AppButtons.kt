@@ -75,7 +75,7 @@ fun DangerButton(
         modifier = modifier.heightIn(min = 48.dp),
         enabled = enabled,
         shape = MaterialTheme.shapes.small,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.errorContainer),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = MaterialTheme.colorScheme.error,
         ),

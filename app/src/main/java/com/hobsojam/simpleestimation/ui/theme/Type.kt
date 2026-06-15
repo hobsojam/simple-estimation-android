@@ -24,6 +24,12 @@ import androidx.compose.ui.unit.sp
  *   badge 0.72rem   -> labelSmall
  */
 val SimpleEstimationTypography = Typography(
+    headlineMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+    ),
     headlineSmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.SemiBold,
@@ -73,6 +79,17 @@ val SimpleEstimationTypography = Typography(
         fontSize = 12.sp,
         lineHeight = 16.sp,
     ),
+)
+
+/*
+ * Planning-poker card face value. 19sp keeps single/double-digit numbers and
+ * emoji (?, ∞, ☕) legible inside the 54×72dp card tile.
+ */
+val CardValueStyle = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 19.sp,
+    lineHeight = 24.sp,
 )
 
 /*
