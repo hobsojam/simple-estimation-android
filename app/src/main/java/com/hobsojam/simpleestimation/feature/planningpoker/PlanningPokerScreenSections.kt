@@ -12,45 +12,35 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.hobsojam.simpleestimation.ui.theme.components.Banner
+import com.hobsojam.simpleestimation.ui.theme.components.BannerTone
+import com.hobsojam.simpleestimation.ui.theme.components.EstimationCard
+import com.hobsojam.simpleestimation.ui.theme.components.SecondaryButton
 
 private const val SECONDS_PER_MINUTE = 60
 private const val CLOCK_SECONDS_WIDTH = 2
 
 @Composable
 internal fun ServerErrorBanner(message: String, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-        ),
-    ) {
-        Text(
-            text = message,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .padding(16.dp)
-                .semantics { liveRegion = LiveRegionMode.Polite },
-        )
-    }
+    Banner(
+        text = message,
+        tone = BannerTone.DANGER,
+        modifier = modifier.semantics { liveRegion = LiveRegionMode.Polite },
+    )
 }
 
 @Composable
@@ -74,9 +64,7 @@ internal fun RoomHeader(state: PlanningPokerUiState, onLeave: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
-        TextButton(onClick = onLeave) {
-            Text("Leave")
-        }
+        SecondaryButton(text = "Leave", onClick = onLeave)
     }
 }
 
@@ -113,12 +101,11 @@ internal fun VoteCards(selectedVote: String?, onVoteSelected: (String) -> Unit) 
         ) {
             PlanningPokerVoteCards.forEach { vote ->
                 val selected = vote == selectedVote
-                FilterChip(
+                EstimationCard(
+                    value = vote,
                     selected = selected,
-                    onClick = { onVoteSelected(vote) },
-                    label = { Text(vote) },
-                    modifier = Modifier.semantics {
-                        role = Role.Button
+                    onSelect = { onVoteSelected(it) },
+                    modifier = Modifier.semantics(mergeDescendants = true) {
                         contentDescription = voteContentDescription(vote)
                         stateDescription = if (selected) "Selected" else "Not selected"
                     },
@@ -207,23 +194,13 @@ internal fun RevealedVotesCard(state: PlanningPokerUiState) {
 
 @Composable
 internal fun TimerCard(timer: PlanningPokerTimer) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-        ),
-    ) {
-        Text(
-            text = "Timer: ${timer.remainingSeconds.secondsAsClock()}",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier
-                .padding(16.dp)
-                .semantics {
-                    contentDescription =
-                        "Timer ${timer.remainingSeconds.secondsAsClock()} remaining"
-                },
-        )
-    }
+    Banner(
+        text = "Timer: ${timer.remainingSeconds.secondsAsClock()}",
+        tone = BannerTone.WARNING,
+        modifier = Modifier.semantics {
+            contentDescription = "Timer ${timer.remainingSeconds.secondsAsClock()} remaining"
+        },
+    )
 }
 
 private fun voteContentDescription(vote: String): String = when (vote) {

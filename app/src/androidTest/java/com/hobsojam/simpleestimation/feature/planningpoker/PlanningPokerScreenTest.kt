@@ -14,6 +14,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import org.junit.Rule
 import org.junit.Test
@@ -87,7 +88,7 @@ class PlanningPokerScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Timer: 1:30").assertIsDisplayed()
+        composeRule.onNodeWithText("Timer: 1:30").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Revealed votes").assertIsDisplayed()
         composeRule.onNodeWithText("Avery").assertIsDisplayed()
         composeRule.onNodeWithText("13 · Outlier").assertIsDisplayed()

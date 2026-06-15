@@ -6,22 +6,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.hobsojam.simpleestimation.ui.theme.components.Banner
+import com.hobsojam.simpleestimation.ui.theme.components.BannerTone
+import com.hobsojam.simpleestimation.ui.theme.components.PrimaryButton
+import com.hobsojam.simpleestimation.ui.theme.components.SecondaryButton
 
 @Composable
 internal fun RoomJoinPanel(
@@ -76,18 +76,8 @@ internal fun RoomJoinPanel(
             }
             RoomJoinStatusMessage(status = joinState.status)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = onSubmitJoin,
-                    modifier = Modifier.semantics { role = Role.Button },
-                ) {
-                    Text("Join room")
-                }
-                OutlinedButton(
-                    onClick = onCancelJoin,
-                    modifier = Modifier.semantics { role = Role.Button },
-                ) {
-                    Text("Cancel")
-                }
+                PrimaryButton(text = "Join room", onClick = onSubmitJoin)
+                SecondaryButton(text = "Cancel", onClick = onCancelJoin)
             }
         }
     }
@@ -97,31 +87,23 @@ internal fun RoomJoinPanel(
 private fun RoomJoinStatusMessage(status: RoomJoinStatus) {
     when (status) {
         RoomJoinStatus.Idle -> Unit
-        RoomJoinStatus.CheckingCompatibility -> Text(
-            text = "Checking server compatibility…",
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        is RoomJoinStatus.Error -> Text(
-            text = status.message,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        RoomJoinStatus.CheckingCompatibility ->
+            Banner("Checking server compatibility…", tone = BannerTone.INFO)
+        is RoomJoinStatus.Error ->
+            Banner(status.message, tone = BannerTone.DANGER)
         is RoomJoinStatus.ReadyToConnect -> Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (status.demoMode) {
-                Text(
+                Banner(
                     text = "Demo mode is enabled on this server. " +
                         "Room data may reset without notice.",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyLarge,
+                    tone = BannerTone.WARNING,
                 )
             }
-            Text(
+            Banner(
                 text = "Ready to connect as ${status.request.displayName}.",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                tone = BannerTone.SUCCESS,
             )
         }
     }
