@@ -31,7 +31,7 @@ jobs:
         run: sdkmanager "platforms;android-35" "build-tools;36.0.0"
 
       - name: Restore vulnerability database
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v5.0.5
         with:
           path: build/dependency-check-data
           key: ${{ runner.os }}-dependency-check-${{ github.run_id }}
@@ -45,7 +45,7 @@ jobs:
 
       - name: Save vulnerability database
         if: always()
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v5.0.5
         with:
           path: build/dependency-check-data
           key: ${{ runner.os }}-dependency-check-${{ github.run_id }}
