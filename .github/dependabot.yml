@@ -9,7 +9,7 @@ updates:
       time: "06:00"
       timezone: "Europe/Berlin"
     cooldown:
-      default: 7
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       android-build-dependencies:
@@ -24,7 +24,7 @@ updates:
       time: "06:30"
       timezone: "Europe/Berlin"
     cooldown:
-      default: 7
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       github-actions:
