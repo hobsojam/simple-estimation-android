@@ -8,7 +8,7 @@ detekt = "2.0.0-alpha.5"
 gradle-doctor = "0.12.1"
 kotest = "6.2.1"
 # Pinned below 2.3.30: CodeQL 2.25.6 rejects Kotlin 2.4.0+ with KotlinVersionTooRecentError
-kotlin = "2.2.10"
+kotlin = "2.4.0"
 kover = "0.9.8"
 mockk = "1.14.11"
 okhttp = "5.4.0"
