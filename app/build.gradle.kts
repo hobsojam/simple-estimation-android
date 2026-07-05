@@ -119,7 +119,7 @@ configurations.all {
     resolutionStrategy.eachDependency {
         when {
             requested.group == "io.netty" -> useVersion("4.1.135.Final")
-            requested.group == "ch.qos.logback" -> useVersion("1.5.33")
+            requested.group == "ch.qos.logback" -> useVersion("1.5.37")
             requested.group == "org.bouncycastle" -> useVersion("1.84")
             requested.group == "org.apache.commons" && requested.name == "commons-lang3" ->
                 useVersion("3.18.0")
