@@ -111,6 +111,24 @@ tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
     jvmTarget.set("17")
 }
 
+// Forces patched versions of transitive libraries pulled in by AGP's Unified Test Platform
+// tooling (grpc-netty et al.), not declared directly anywhere in this project. These are the
+// versions Dependabot alerts require; none of them are reachable via the version catalog since
+// there is no direct dependency to bump.
+configurations.all {
+    resolutionStrategy.eachDependency {
+        when {
+            requested.group == "io.netty" -> useVersion("4.1.135.Final")
+            requested.group == "ch.qos.logback" -> useVersion("1.5.37")
+            requested.group == "org.bouncycastle" -> useVersion("1.84")
+            requested.group == "org.apache.commons" && requested.name == "commons-lang3" ->
+                useVersion("3.18.0")
+            requested.group == "org.apache.httpcomponents" && requested.name == "httpclient" ->
+                useVersion("4.5.13")
+        }
+    }
+}
+
 dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.activity.ktx)
