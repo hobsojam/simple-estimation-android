@@ -1,12 +1,12 @@
 [versions]
-agp = "9.2.1"
+agp = "9.3.0"
 androidx-activity = "1.13.0"
 androidx-core = "1.19.0"
 androidx-lifecycle = "2.11.0"
-compose-bom = "2026.06.00"
+compose-bom = "2026.06.01"
 detekt = "2.0.0-alpha.5"
 gradle-doctor = "0.12.1"
-kotest = "6.2.1"
+kotest = "6.2.2"
 # Pinned below 2.3.30: CodeQL 2.25.6 rejects Kotlin 2.4.0+ with KotlinVersionTooRecentError
 kotlin = "2.3.21"
 kover = "0.9.8"
