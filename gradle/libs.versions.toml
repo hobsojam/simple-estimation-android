@@ -1,19 +1,19 @@
 [versions]
-agp = "9.2.1"
+agp = "9.4.1"
 androidx-activity = "1.13.0"
-androidx-core = "1.19.0"
+androidx-core = "1.19.1"
 androidx-lifecycle = "2.11.0"
-compose-bom = "2026.06.00"
-detekt = "2.0.0-alpha.5"
+compose-bom = "2026.09.00"
+detekt = "2.0.0-alpha.6"
 gradle-doctor = "0.12.1"
-kotest = "6.2.1"
+kotest = "6.2.5"
 # Pinned below 2.3.30: CodeQL 2.25.6 rejects Kotlin 2.4.0+ with KotlinVersionTooRecentError
 kotlin = "2.3.21"
-kover = "0.9.8"
+kover = "0.9.11"
 mockk = "1.14.11"
-okhttp = "5.4.0"
+okhttp = "5.5.0"
 androidx-test-ext-junit = "1.3.0"
-owasp-dependency-check = "12.2.2"
+owasp-dependency-check = "13.0.0"
 ktlint-gradle = "14.2.0"
 
 [libraries]
